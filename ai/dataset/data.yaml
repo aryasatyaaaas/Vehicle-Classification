@@ -1,0 +1,23 @@
+# Dataset config untuk training YOLOv8
+# Path relatif dari lokasi file ini (ai/dataset/data.yaml)
+# Dataset asli berada di root project folder
+
+train: ../../train/images
+val:   ../../valid/images
+test:  ../../test/images
+
+nc: 5
+names:
+  - 'GOL I'    # Motor / Sepeda
+  - 'GOL II'   # Sedan / Minibus / Pick-up
+  - 'GOL III'  # Truk 2 Gandar
+  - 'GOL IV'   # Truk 3 Gandar
+  - 'GOL V'    # Truk 4 Gandar atau lebih
+
+# Metadata Roboflow
+roboflow:
+  workspace: muhammad-rizky-ferdiansyah-00fow
+  project:   golongan-kendaraan-jalan-tol-lingkar-luar-jakarta-timur
+  version:   5
+  license:   Public Domain
+  url:       https://universe.roboflow.com/muhammad-rizky-ferdiansyah-00fow/golongan-kendaraan-jalan-tol-lingkar-luar-jakarta-timur/dataset/5

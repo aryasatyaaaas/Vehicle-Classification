@@ -1,0 +1,42 @@
+# Vehicle Classification Project - .gitignore
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.env
+.eggs/
+
+# Virtual environments
+ai/venv/
+backend/venv/
+venv/
+.venv/
+
+# ── YOLOv8 / Training ────────────────────────────────────
+ai/runs/
+backend/models/*.pt
+backend/models/*.onnx
+backend/uploads/
+
+# ── Node.js / Next.js ────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/out/
+
+# ── OS ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ──────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo

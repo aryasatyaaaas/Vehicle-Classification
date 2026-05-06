@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['GOL I', 'GOL II', 'GOL III', 'GOL IV', 'GOL V']
+
+roboflow:
+  workspace: muhammad-rizky-ferdiansyah-00fow
+  project: golongan-kendaraan-jalan-tol-lingkar-luar-jakarta-timur
+  version: 5
+  license: Public Domain
+  url: https://universe.roboflow.com/muhammad-rizky-ferdiansyah-00fow/golongan-kendaraan-jalan-tol-lingkar-luar-jakarta-timur/dataset/5

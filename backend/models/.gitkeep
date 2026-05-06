@@ -1,0 +1,6 @@
+# Folder untuk menyimpan model .pt hasil training
+# File ini sengaja dikosongkan, isi akan ditambahkan setelah training selesai
+
+# Cara mengisi folder ini:
+# 1. Setelah train.py selesai, jalankan: python ai/export_model.py
+# 2. File best.pt akan disalin otomatis ke sini
