@@ -8,11 +8,11 @@ test:  ../../test/images
 
 nc: 5
 names:
-  - 'GOL I'    # Motor / Sepeda
-  - 'GOL II'   # Sedan / Minibus / Pick-up
-  - 'GOL III'  # Truk 2 Gandar
-  - 'GOL IV'   # Truk 3 Gandar
-  - 'GOL V'    # Truk 4 Gandar atau lebih
+  - 'GOL I'    # Sedan / Jip / Pick-up / Bus (≤2 gandar, tinggi <1m dari tanah)
+  - 'GOL II'   # Truk 2 Gandar
+  - 'GOL III'  # Truk 3 Gandar
+  - 'GOL IV'   # Truk 4 Gandar
+  - 'GOL V'    # Truk 5 Gandar atau lebih
 
 # Metadata Roboflow
 roboflow:

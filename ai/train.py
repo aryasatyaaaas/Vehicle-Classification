@@ -5,6 +5,13 @@
   Model    : YOLOv8n (Nano) — dioptimalkan untuk CPU
   Dataset  : 5 kelas (GOL I – GOL V), 1453 gambar
   Ref      : Paper Section 3.3 — augmentasi brightness + noise
+
+  Golongan Kendaraan Tol (standar Jasa Marga):
+    GOL I   — Sedan, Jip, Pick-up, Bus (≤2 gandar, tinggi <1m)
+    GOL II  — Truk 2 Gandar
+    GOL III — Truk 3 Gandar
+    GOL IV  — Truk 4 Gandar
+    GOL V   — Truk 5 Gandar atau lebih
 =============================================================================
 """
 
@@ -60,14 +67,14 @@ CFG = dict(
     erasing    = 0.4,            # Random erasing ≈ simulasi noise oklusi ← sesuai paper
 )
 
-# ── Kelas kendaraan ──────────────────────────────────────────────────────────
+# ── Kelas kendaraan (standar Jasa Marga) ─────────────────────────────────────
 CLASS_NAMES = ["GOL I", "GOL II", "GOL III", "GOL IV", "GOL V"]
 CLASS_DESC  = {
-    "GOL I"  : "Motor / Sepeda",
-    "GOL II" : "Sedan / Minibus / Pick-up",
-    "GOL III": "Truk 2 Gandar",
-    "GOL IV" : "Truk 3 Gandar",
-    "GOL V"  : "Truk 4 Gandar atau lebih",
+    "GOL I"  : "Sedan / Jip / Pick-up / Bus",
+    "GOL II" : "Truk 2 Gandar",
+    "GOL III": "Truk 3 Gandar",
+    "GOL IV" : "Truk 4 Gandar",
+    "GOL V"  : "Truk 5 Gandar atau lebih",
 }
 
 
@@ -170,7 +177,6 @@ def train():
     print("=" * 65 + "\n")
 
     return results
-
 
 if __name__ == "__main__":
     train()

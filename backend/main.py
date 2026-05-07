@@ -27,11 +27,11 @@ UPLOAD_DIR = BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 CLASS_INFO = {
-    0: {"name": "GOL I",   "description": "Motor / Sepeda",                   "color": "#22c55e"},
-    1: {"name": "GOL II",  "description": "Sedan / Minibus / Pick-up",        "color": "#3b82f6"},
-    2: {"name": "GOL III", "description": "Truk 2 Gandar",                    "color": "#f59e0b"},
-    3: {"name": "GOL IV",  "description": "Truk 3 Gandar",                    "color": "#ef4444"},
-    4: {"name": "GOL V",   "description": "Truk 4 Gandar atau lebih",         "color": "#8b5cf6"},
+    0: {"name": "GOL I",   "description": "Sedan / Jip / Pick-up / Bus",      "color": "#22c55e"},
+    1: {"name": "GOL II",  "description": "Truk 2 Gandar",                    "color": "#3b82f6"},
+    2: {"name": "GOL III", "description": "Truk 3 Gandar",                    "color": "#f59e0b"},
+    3: {"name": "GOL IV",  "description": "Truk 4 Gandar",                    "color": "#ef4444"},
+    4: {"name": "GOL V",   "description": "Truk 5 Gandar atau lebih",         "color": "#8b5cf6"},
 }
 
 # ── App ──────────────────────────────────────────────────────────────────────
@@ -43,7 +43,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://vehicle-tol.vercel.app",   # ← ganti dengan URL Vercel kamu
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -149,7 +153,7 @@ async def predict(file: UploadFile = File(...), conf: float = 0.25):
 # ── WebSocket live stream (opsional) ─────────────────────────────────────────
 @app.websocket("/ws/predict")
 async def ws_predict(websocket: WebSocket):
-    """Terima frame base64, kirim balik hasil deteksi."""
+    """Terima frame binary JPEG, kirim balik hasil deteksi lengkap."""
     await websocket.accept()
     try:
         while True:
@@ -157,21 +161,28 @@ async def ws_predict(websocket: WebSocket):
             if model is None:
                 await websocket.send_json({"error": "Model not loaded"})
                 continue
-            nparr   = np.frombuffer(data, np.uint8)
-            img     = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            nparr = np.frombuffer(data, np.uint8)
+            img   = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if img is None:
+                await websocket.send_json({"detections": []})
+                continue
             results = model.predict(img, conf=0.25, verbose=False)[0]
             dets    = []
             for box in results.boxes:
                 cls_id   = int(box.cls)
                 conf_val = float(box.conf)
                 x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                info = CLASS_INFO.get(cls_id, {})
+                info = CLASS_INFO.get(cls_id, {"name": f"Class {cls_id}", "description": "-", "color": "#888"})
                 dets.append({
-                    "class_id":   cls_id,
-                    "class_name": info.get("name", f"Class {cls_id}"),
-                    "confidence": round(conf_val, 4),
-                    "bbox":       {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
+                    "class_id":    cls_id,
+                    "class_name":  info["name"],
+                    "description": info["description"],
+                    "color":       info["color"],
+                    "confidence":  round(conf_val, 4),
+                    "bbox":        {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
                 })
+            # Sort by confidence descending
+            dets.sort(key=lambda d: d["confidence"], reverse=True)
             await websocket.send_json({"detections": dets})
     except WebSocketDisconnect:
         pass

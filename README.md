@@ -101,11 +101,11 @@ npm run dev
 
 | ID | Golongan | Deskripsi |
 |----|----------|-----------|
-| 0  | GOL I    | Motor / Sepeda |
-| 1  | GOL II   | Sedan / Minibus / Pick-up |
-| 2  | GOL III  | Truk 2 Gandar |
-| 3  | GOL IV   | Truk 3 Gandar |
-| 4  | GOL V    | Truk 4 Gandar atau lebih |
+| 0  | GOL I    | Sedan / Jip / Pick-up / Bus |
+| 1  | GOL II   | Truk 2 Gandar |
+| 2  | GOL III  | Truk 3 Gandar |
+| 3  | GOL IV   | Truk 4 Gandar |
+| 4  | GOL V    | Truk 5 Gandar atau lebih |
 
 ---
 

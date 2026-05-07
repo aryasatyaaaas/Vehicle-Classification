@@ -4,6 +4,11 @@ test: ../test/images
 
 nc: 5
 names: ['GOL I', 'GOL II', 'GOL III', 'GOL IV', 'GOL V']
+# GOL I   : Sedan / Jip / Pick-up / Bus
+# GOL II  : Truk 2 Gandar
+# GOL III : Truk 3 Gandar
+# GOL IV  : Truk 4 Gandar
+# GOL V   : Truk 5 Gandar atau lebih
 
 roboflow:
   workspace: muhammad-rizky-ferdiansyah-00fow
