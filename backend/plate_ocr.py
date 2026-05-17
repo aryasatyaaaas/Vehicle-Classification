@@ -190,6 +190,14 @@ def _crop_from_bbox(frame: np.ndarray, bbox: dict) -> Optional[np.ndarray]:
     return crop if crop.size > 0 else None
 
 
+def _sharpness(img: np.ndarray) -> float:
+    """Hitung ketajaman gambar menggunakan varians Laplacian. Semakin tinggi = semakin tajam."""
+    if img is None or img.size == 0:
+        return 0.0
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
+    return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+
+
 def _closeup_regions(frame: np.ndarray) -> List[np.ndarray]:
     h, w = frame.shape[:2]
     regions = []

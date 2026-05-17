@@ -40,3 +40,23 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# ── Tauri / Rust build artifacts ─────────────────────────
+frontend/src-tauri/target/
+frontend/src-tauri/gen/
+# Cargo build dir di luar project (C:\cargo-build\)
+# (tidak perlu di-ignore karena di luar repo)
+
+# ── PyInstaller output (terlalu besar untuk GitHub) ──────
+backend/build/
+backend/dist/
+backend/*.spec.bak
+
+# ── Backend binary dist (894MB — jangan di-push) ─────────
+frontend/backend-dist/_internal/
+frontend/backend-dist/backend.exe
+# Tapi keep .gitkeep agar folder tetap ada di repo
+!frontend/backend-dist/.gitkeep
+backend-dist/_internal/
+backend-dist/backend.exe
+!backend-dist/.gitkeep

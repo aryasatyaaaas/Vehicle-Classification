@@ -6,7 +6,7 @@ use tauri::{Manager, State};
 pub struct BackendProcess(pub Mutex<Option<Child>>);
 
 fn start_backend(resource_dir: &std::path::Path) -> Result<Child, String> {
-    let backend_exe = resource_dir.join("backend.exe");
+    let backend_exe = resource_dir.join("backend-dist").join("backend.exe");
 
     if !backend_exe.exists() {
         // Saat development (tauri dev), backend tidak dibundel — skip
