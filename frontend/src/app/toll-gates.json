@@ -1,0 +1,665 @@
+[
+  {
+    "province": "Aceh",
+    "gates": [
+      {
+        "name": "GT Baitussalam",
+        "exit": "GT Blang Bintang / Akhir Jalur"
+      },
+      {
+        "name": "GT Blang Bintang",
+        "exit": "GT Baitussalam / GT Indrapuri"
+      },
+      {
+        "name": "GT Seulimeum",
+        "exit": "GT Jantho / GT Indrapuri"
+      }
+    ]
+  },
+  {
+    "province": "Bali",
+    "gates": [
+      {
+        "name": "GT Benoa",
+        "exit": "GT Ngurah Rai / Pelabuhan Benoa"
+      },
+      {
+        "name": "GT Ngurah Rai",
+        "exit": "GT Nusa Dua / GT Benoa"
+      },
+      {
+        "name": "GT Nusa Dua",
+        "exit": "GT Ngurah Rai / Mandara Main Route"
+      }
+    ]
+  },
+  {
+    "province": "Banten",
+    "gates": [
+      {
+        "name": "GT BSD",
+        "exit": "GT Bintaro / GT Serpong"
+      },
+      {
+        "name": "GT Bintaro",
+        "exit": "GT Pondok Ranji / GT BSD"
+      },
+      {
+        "name": "GT Bitung",
+        "exit": "GT Karawaci / GT Cikupa"
+      },
+      {
+        "name": "GT Cikupa",
+        "exit": "GT Balaraja Timur / GT Bitung"
+      },
+      {
+        "name": "GT Karawaci",
+        "exit": "GT Tangerang / GT Bitung"
+      },
+      {
+        "name": "GT Kunciran",
+        "exit": "GT Alam Sutera / GT Pariaman"
+      },
+      {
+        "name": "GT Tangerang",
+        "exit": "GT Karawaci / GT Kunciran"
+      }
+    ]
+  },
+  {
+    "province": "DKI Jakarta",
+    "gates": [
+      {
+        "name": "GT Ampera",
+        "exit": "GT Fatmawati / GT Cilandak"
+      },
+      {
+        "name": "GT Ancol Barat",
+        "exit": "GT Pluit / GT Kemayoran"
+      },
+      {
+        "name": "GT Ancol Timur",
+        "exit": "GT Ancol Barat / GT Kemayoran"
+      },
+      {
+        "name": "GT Angke",
+        "exit": "GT Pluit / GT Jembatan Tiga"
+      },
+      {
+        "name": "GT Cawang",
+        "exit": "GT Halim / GT Cililitan"
+      },
+      {
+        "name": "GT Cilandak",
+        "exit": "GT Cipete / GT Ampera"
+      },
+      {
+        "name": "GT Cililitan",
+        "exit": "GT Cawang / GT UKI"
+      },
+      {
+        "name": "GT Cipete",
+        "exit": "GT Brigif / GT Krukut"
+      },
+      {
+        "name": "GT Fatmawati",
+        "exit": "GT Ampera / GT Gedong"
+      },
+      {
+        "name": "GT Halim",
+        "exit": "GT Cawang / GT Jatiwaringin"
+      },
+      {
+        "name": "GT Jembatan Tiga",
+        "exit": "GT Pluit / GT Angke"
+      },
+      {
+        "name": "GT Kebon Jeruk",
+        "exit": "GT Meruya / GT Tomang"
+      },
+      {
+        "name": "GT Kemayoran",
+        "exit": "GT Ancol Barat / GT Ancol Timur"
+      },
+      {
+        "name": "GT Kembangan",
+        "exit": "GT Meruya / GT Karang Tengah"
+      },
+      {
+        "name": "GT Kuningan",
+        "exit": "GT Tebet / GT Semanggi"
+      },
+      {
+        "name": "GT Meruya",
+        "exit": "GT Kembangan / GT Joglo"
+      },
+      {
+        "name": "GT Pasar Rebo",
+        "exit": "GT Gedong / GT Bambu Apus"
+      },
+      {
+        "name": "GT Pluit",
+        "exit": "GT Angke / GT Kapuk (Sedyatmo)"
+      },
+      {
+        "name": "GT Pulogebang",
+        "exit": "GT Bintara / GT Cakung"
+      },
+      {
+        "name": "GT Rawamangun",
+        "exit": "GT Pulomas / GT Salemba"
+      },
+      {
+        "name": "GT Salemba",
+        "exit": "GT Rawamangun / GT Cawang"
+      },
+      {
+        "name": "GT Semanggi",
+        "exit": "GT Kuningan / GT Slipi"
+      },
+      {
+        "name": "GT Slipi",
+        "exit": "GT Tomang / GT Pejompongan"
+      },
+      {
+        "name": "GT Tanjung Priok",
+        "exit": "GT Kebon Bawang / GT Ancol Timur"
+      },
+      {
+        "name": "GT Tebet",
+        "exit": "GT Cawang / GT Kuningan"
+      },
+      {
+        "name": "GT Tomang",
+        "exit": "GT Kebon Jeruk / GT Slipi"
+      }
+    ]
+  },
+  {
+    "province": "Jawa Barat",
+    "gates": [
+      {
+        "name": "GT Bekasi Barat",
+        "exit": "GT Bekasi Timur / GT Jatiwaringin"
+      },
+      {
+        "name": "GT Bekasi Timur",
+        "exit": "GT Bekasi Barat / GT Tambun"
+      },
+      {
+        "name": "GT Bogor",
+        "exit": "GT Sentul Selatan / GT Ciawi"
+      },
+      {
+        "name": "GT Buah Batu",
+        "exit": "GT Moh. Toha / GT Cileunyi"
+      },
+      {
+        "name": "GT Ciawi",
+        "exit": "GT Bogor / Akhir Jalur Bocimi"
+      },
+      {
+        "name": "GT Cibitung",
+        "exit": "GT Tambun / GT Cikarang Barat"
+      },
+      {
+        "name": "GT Cikarang Barat",
+        "exit": "GT Cibitung / GT Cikarang Timur"
+      },
+      {
+        "name": "GT Cikarang Utama / Utama 3",
+        "exit": "GT Kalihurip / GT Karawang Barat"
+      },
+      {
+        "name": "GT Cileunyi",
+        "exit": "GT Gedebage / GT Jatinangor"
+      },
+      {
+        "name": "GT Ciperna",
+        "exit": "GT Plumbon / GT Kanci"
+      },
+      {
+        "name": "GT Cisalak",
+        "exit": "GT Margonda / GT Cibubur"
+      },
+      {
+        "name": "GT Gedebage",
+        "exit": "GT Buah Batu / GT Cileunyi"
+      },
+      {
+        "name": "GT Jatiasih",
+        "exit": "GT Kalimalang / GT Bambu Apus"
+      },
+      {
+        "name": "GT Jatiluhur",
+        "exit": "GT Sadang / GT Ciganea"
+      },
+      {
+        "name": "GT Jatiwaringin",
+        "exit": "GT Halim / GT Pondok Gede"
+      },
+      {
+        "name": "GT Kalihurip",
+        "exit": "GT Karawang Timur / GT Dawuan"
+      },
+      {
+        "name": "GT Kalijati",
+        "exit": "GT Subang / GT Cikopo"
+      },
+      {
+        "name": "GT Kanci",
+        "exit": "GT Ciperna / GT Pejagan"
+      },
+      {
+        "name": "GT Karawang Barat",
+        "exit": "GT Karawang Timur / GT Cikarang Timur"
+      },
+      {
+        "name": "GT Karawang Timur",
+        "exit": "GT Karawang Barat / GT Kalihurip"
+      },
+      {
+        "name": "GT Kopo",
+        "exit": "GT Pasir Koja / GT Moh. Toha"
+      },
+      {
+        "name": "GT Kukusan",
+        "exit": "GT Margonda / GT Krukut"
+      },
+      {
+        "name": "GT Margonda",
+        "exit": "GT Kukusan / GT Cisalak"
+      },
+      {
+        "name": "GT Moh. Toha",
+        "exit": "GT Kopo / GT Buah Batu"
+      },
+      {
+        "name": "GT Palimanan",
+        "exit": "GT Plumbon / GT Kertajati"
+      },
+      {
+        "name": "GT Pasir Koja",
+        "exit": "GT Pasteur / GT Kopo"
+      },
+      {
+        "name": "GT Pasteur",
+        "exit": "GT Pasir Koja / GT Baros"
+      },
+      {
+        "name": "GT Plumbon",
+        "exit": "GT Palimanan / GT Ciperna"
+      },
+      {
+        "name": "GT Sadang",
+        "exit": "GT Jatiluhur / GT Cikopo"
+      },
+      {
+        "name": "GT Sawangan",
+        "exit": "GT Krukut / GT Brigif"
+      },
+      {
+        "name": "GT Sentul Selatan",
+        "exit": "GT Bogor / GT Sentul Utara"
+      },
+      {
+        "name": "GT Sentul Utara",
+        "exit": "GT Sentul Selatan / GT Citeureup"
+      },
+      {
+        "name": "GT Subang",
+        "exit": "GT Kalijati / GT Cikedung"
+      },
+      {
+        "name": "GT Tambun",
+        "exit": "GT Bekasi Timur / GT Cibitung"
+      },
+      {
+        "name": "GT Tanah Baru",
+        "exit": "GT Kedung Halang / GT Sentul Barat"
+      }
+    ]
+  },
+  {
+    "province": "Jawa Tengah",
+    "gates": [
+      {
+        "name": "GT Banyumanik",
+        "exit": "GT Tembalang / GT Ungaran"
+      },
+      {
+        "name": "GT Batang",
+        "exit": "GT Kandeman / GT Pekalongan"
+      },
+      {
+        "name": "GT Boyolali",
+        "exit": "GT Colomadu / GT Salatiga"
+      },
+      {
+        "name": "GT Brebes Barat",
+        "exit": "GT Brebes Timur / GT Pejagan"
+      },
+      {
+        "name": "GT Brebes Timur",
+        "exit": "GT Brebes Barat / GT Tegal"
+      },
+      {
+        "name": "GT Colomadu",
+        "exit": "GT Ngemplak / GT Boyolali"
+      },
+      {
+        "name": "GT Gayamsari",
+        "exit": "GT Muktiharjo / GT Tembalang"
+      },
+      {
+        "name": "GT Gondangrejo",
+        "exit": "GT Ngemplak / GT Karanganyar"
+      },
+      {
+        "name": "GT Jatingaleh",
+        "exit": "GT Krapyak / GT Tembalang"
+      },
+      {
+        "name": "GT Kalikangkung",
+        "exit": "GT Krapyak / GT Kendal"
+      },
+      {
+        "name": "GT Kandeman",
+        "exit": "GT Batang / GT Weleri"
+      },
+      {
+        "name": "GT Karanganyar",
+        "exit": "GT Gondangrejo / GT Sragen"
+      },
+      {
+        "name": "GT Krapyak",
+        "exit": "GT Jatingaleh / GT Kalikangkung"
+      },
+      {
+        "name": "GT Muktiharjo",
+        "exit": "GT Gayamsari / GT Kaligawe"
+      },
+      {
+        "name": "GT Ngemplak",
+        "exit": "GT Colomadu / GT Gondangrejo"
+      },
+      {
+        "name": "GT Pekalongan",
+        "exit": "GT Pemalang / GT Batang"
+      },
+      {
+        "name": "GT Sragen",
+        "exit": "GT Karanganyar / GT Ngawi"
+      },
+      {
+        "name": "GT Tegal",
+        "exit": "GT Brebes Timur / GT Pemalang"
+      },
+      {
+        "name": "GT Tembalang",
+        "exit": "GT Jatingaleh / GT Banyumanik"
+      }
+    ]
+  },
+  {
+    "province": "Jawa Timur",
+    "gates": [
+      {
+        "name": "GT Dupak",
+        "exit": "GT Tanjungsari / GT Demak"
+      },
+      {
+        "name": "GT Grati",
+        "exit": "GT Pasuruan / GT Probolinggo Barat"
+      },
+      {
+        "name": "GT Gunungsari",
+        "exit": "GT Waru / GT Kota Satelit"
+      },
+      {
+        "name": "GT Jombang",
+        "exit": "GT Mojokerto Barat / GT Bandar"
+      },
+      {
+        "name": "GT Kebomas",
+        "exit": "GT Romokalisari / GT Manyar"
+      },
+      {
+        "name": "GT Kota Satelit",
+        "exit": "GT Gunungsari / GT Dupak"
+      },
+      {
+        "name": "GT Madiun",
+        "exit": "GT Caruban / GT Nganjuk"
+      },
+      {
+        "name": "GT Malang",
+        "exit": "GT Pakis / Akhir Jalur Madyopuro"
+      },
+      {
+        "name": "GT Manyar",
+        "exit": "GT Kebomas / Selesai Jalur KLIAN"
+      },
+      {
+        "name": "GT Mojokerto Barat",
+        "exit": "GT Jombang / GT Penompo"
+      },
+      {
+        "name": "GT Ngawi",
+        "exit": "GT Sragen / GT Madiun"
+      },
+      {
+        "name": "GT Pakis",
+        "exit": "GT Singosari / GT Malang"
+      },
+      {
+        "name": "GT Penompo",
+        "exit": "GT Mojokerto Barat / GT Warugunung"
+      },
+      {
+        "name": "GT Porong",
+        "exit": "GT Sidoarjo / GT Kejapanan (Gempol)"
+      },
+      {
+        "name": "GT Probolinggo Barat",
+        "exit": "GT Grati / GT Probolinggo Timur"
+      },
+      {
+        "name": "GT Probolinggo Timur",
+        "exit": "GT Probolinggo Barat / Akhir Jalur Gending"
+      },
+      {
+        "name": "GT Romokalisari",
+        "exit": "GT Tanjungsari / GT Kebomas"
+      },
+      {
+        "name": "GT Sidoarjo",
+        "exit": "GT Waru / GT Porong"
+      },
+      {
+        "name": "GT Singosari",
+        "exit": "GT Pakis / GT Lawang"
+      },
+      {
+        "name": "GT Tanjungsari",
+        "exit": "GT Dupak / GT Romokalisari"
+      },
+      {
+        "name": "GT Waru",
+        "exit": "GT Gunungsari / GT Sidoarjo"
+      }
+    ]
+  },
+  {
+    "province": "Kalimantan Timur",
+    "gates": [
+      {
+        "name": "GT Karang Joang",
+        "exit": "GT Manggar / GT Samboja"
+      },
+      {
+        "name": "GT Manggar",
+        "exit": "GT Karang Joang / Samboja"
+      },
+      {
+        "name": "GT Palaran",
+        "exit": "GT Samboja / Akhir Jalur Jembatan Mahkota"
+      },
+      {
+        "name": "GT Samboja",
+        "exit": "GT Karang Joang / GT Palaran"
+      }
+    ]
+  },
+  {
+    "province": "Lampung",
+    "gates": [
+      {
+        "name": "GT Bakauheni Selatan",
+        "exit": "GT Bakauheni Utara / Pelabuhan"
+      },
+      {
+        "name": "GT Bakauheni Utara",
+        "exit": "GT Bakauheni Selatan / GT Kalianda"
+      },
+      {
+        "name": "GT Kotabaru",
+        "exit": "GT Lematang / GT Natar"
+      },
+      {
+        "name": "GT Lematang",
+        "exit": "GT Kotabaru / GT Bakauheni"
+      },
+      {
+        "name": "GT Natar",
+        "exit": "GT Kotabaru / GT Tegineneng"
+      }
+    ]
+  },
+  {
+    "province": "Riau",
+    "gates": [
+      {
+        "name": "GT Dumai",
+        "exit": "GT Duri / Kawasan Industri Dumai"
+      },
+      {
+        "name": "GT Duri",
+        "exit": "GT Kandis / GT Dumai"
+      },
+      {
+        "name": "GT Kandis",
+        "exit": "GT Minas / GT Duri Selatan"
+      },
+      {
+        "name": "GT Minas",
+        "exit": "GT Pekanbaru / GT Kandis Selatan"
+      },
+      {
+        "name": "GT Pekanbaru",
+        "exit": "GT Minas / Selesai Jalur Bypass"
+      }
+    ]
+  },
+  {
+    "province": "Sulawesi Selatan",
+    "gates": [
+      {
+        "name": "GT Cambaya",
+        "exit": "GT Kalukuang / Parangloe"
+      },
+      {
+        "name": "GT Kalukuang",
+        "exit": "GT Cambaya / GT Parangloe"
+      },
+      {
+        "name": "GT Mandai",
+        "exit": "GT Parangloe / Bandara Hasanuddin"
+      },
+      {
+        "name": "GT Parangloe",
+        "exit": "GT Kalukuang / GT Mandai"
+      }
+    ]
+  },
+  {
+    "province": "Sulawesi Utara",
+    "gates": [
+      {
+        "name": "GT Airmadidi",
+        "exit": "GT Manado / GT Kauditan"
+      },
+      {
+        "name": "GT Danowudu",
+        "exit": "GT Kauditan / Pelabuhan Bitung"
+      },
+      {
+        "name": "GT Kauditan",
+        "exit": "GT Airmadidi / GT Danowudu"
+      },
+      {
+        "name": "GT Manado",
+        "exit": "GT Airmadidi / Ring Road Manado"
+      }
+    ]
+  },
+  {
+    "province": "Sumatera Utara",
+    "gates": [
+      {
+        "name": "GT Amplas",
+        "exit": "GT Tanjung Morawa / GT Bandar Selamat"
+      },
+      {
+        "name": "GT Bandar Selamat",
+        "exit": "GT Amplas / GT Haji Anif"
+      },
+      {
+        "name": "GT Belawan",
+        "exit": "GT Mabar / Pelabuhan Belawan"
+      },
+      {
+        "name": "GT Binjai",
+        "exit": "GT Marelan / GT Stabat"
+      },
+      {
+        "name": "GT Helvetia",
+        "exit": "GT Marelan / GT Semayang"
+      },
+      {
+        "name": "GT Marelan",
+        "exit": "GT Helvetia / GT Binjai"
+      },
+      {
+        "name": "GT Tanjung Morawa",
+        "exit": "GT Amplas / GT Kualanamu"
+      }
+    ]
+  },
+  {
+    "province": "Sumatra Barat",
+    "gates": [
+      {
+        "name": "GT Sicincin",
+        "exit": "GT Padang (Selesai Proyek Fisik Utama)"
+      }
+    ]
+  },
+  {
+    "province": "Sumatra Selatan",
+    "gates": [
+      {
+        "name": "GT Kramasan",
+        "exit": "GT Pemulutan / GT Kayuagung"
+      },
+      {
+        "name": "GT Palembang",
+        "exit": "GT Pemulutan / GT KTM Rambutan"
+      },
+      {
+        "name": "GT Pemulutan",
+        "exit": "GT Palembang / GT Kramasan"
+      }
+    ]
+  }
+]
