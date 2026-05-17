@@ -47,9 +47,8 @@ services:
     container_name: jm-nginx
     restart: unless-stopped
     ports:
-      - "80:80"     # HTTP → redirect ke HTTPS
       - "443:443"   # HTTPS (wajib untuk akses kamera di browser)
-      - "8080:80"   # Fallback jika port 80 dipakai proses lain
+      - "8080:80"   # Fallback HTTP (akan di-redirect ke HTTPS)
     depends_on:
       - frontend
       - backend
