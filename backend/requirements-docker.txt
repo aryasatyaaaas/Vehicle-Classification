@@ -1,0 +1,21 @@
+# Requirements khusus untuk Docker deployment (CPU-only)
+# Menggunakan torch CPU-only agar tidak download CUDA libraries (~2.5GB)
+# VM Proxmox umumnya tidak punya GPU, jadi CPU mode sudah cukup
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+# Torch CPU-only (hemat ~2.3GB dibanding versi CUDA)
+torch>=2.0.0+cpu
+torchvision>=0.15.0+cpu
+# Ultralytics tanpa auto-install torch (sudah di atas)
+ultralytics>=8.2.0
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+python-multipart>=0.0.9
+websockets>=12.0
+Pillow>=10.0.0
+python-dotenv>=1.0.0
+aiofiles>=23.2.0
+easyocr>=1.7.0

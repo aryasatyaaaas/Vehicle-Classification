@@ -13,9 +13,9 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements dan install Python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements dan install Python deps (CPU-only untuk VM tanpa GPU)
+COPY requirements-docker.txt .
+RUN pip install --no-cache-dir -r requirements-docker.txt
 
 # Copy source code
 COPY main.py plate_ocr.py run_server.py ./
