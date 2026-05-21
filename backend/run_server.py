@@ -30,7 +30,7 @@ if __name__ == "__main__":
     print(f"[Backend] Port: 8000")
     uvicorn.run(
         app,                # Langsung object, bukan "main:app" string
-        host="127.0.0.1",
+        host="0.0.0.0",     # Wajib 0.0.0.0 agar bisa diakses dari container lain (nginx)
         port=8000,
         reload=False,       # WAJIB False untuk PyInstaller
         workers=1,
