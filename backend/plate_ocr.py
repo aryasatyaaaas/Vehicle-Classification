@@ -90,16 +90,15 @@ def _normalize_plate(text: str) -> Optional[str]:
     return None
 
 
-# ── Preprocessing multi-pass ─────────────────────────────────────────────────
-def _preprocess_plate_v2(img: np.ndarray) -> List[np.ndarray]:
+# ── Preprocessing multi-pass ─────────────────────────────────────────────────────────────────────────────────
+def _preprocess_plate(img: np.ndarray) -> List[np.ndarray]:
     """
     Hasilkan beberapa variasi preprocessing untuk diuji OCR.
     Multi-pass meningkatkan kemungkinan salah satu variasi berhasil dibaca.
     """
     h, w = img.shape[:2]
-    results = []
 
-    # ── Step 1: Scale-up agresif untuk gambar kecil ──────────────────────────
+    # ── Step 1: Scale-up agresif untuk gambar kecil ────────────────────────────────────
     # Target: minimal 200px tinggi, ideal 280px
     target_h = 280
     if h < target_h:
@@ -117,15 +116,14 @@ def _preprocess_plate_v2(img: np.ndarray) -> List[np.ndarray]:
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # ── Pass 1: CLAHE + Otsu threshold ───────────────────────────────────────
+    # ── Pass 1: CLAHE + Otsu threshold ─────────────────────────────────────────────────────
     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
     gray_clahe = clahe.apply(gray)
     _, otsu = cv2.threshold(gray_clahe, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    results.append(cv2.cvtColor(otsu, cv2.COLOR_GRAY2BGR))
 
     # ── Pass 2: Adaptive threshold (lebih baik untuk pencahayaan tidak merata) ─
     adaptive = cv2.adaptiveThreshold(
-        gray_eq, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 13, 6
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 13, 6
     )
 
     return [

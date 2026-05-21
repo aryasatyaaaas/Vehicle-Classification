@@ -214,6 +214,13 @@ export default function HomePage() {
       const form = new FormData();
       form.append("file", blob, "capture.jpg");
       const res  = await fetch(`${REST_URL}/capture`, { method: "POST", body: form });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error(`[Capture] Server error ${res.status}:`, text);
+        return;
+      }
+
       const data = await res.json();
 
       if (data.detections?.length > 0) {
