@@ -9,6 +9,10 @@ RUN npm ci
 # Copy source
 COPY . .
 
+# Terima API URL saat build time
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build Next.js standalone (untuk Docker)
 RUN DOCKER_BUILD=1 npm run build
 

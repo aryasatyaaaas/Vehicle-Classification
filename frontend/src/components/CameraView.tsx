@@ -21,7 +21,7 @@ export interface WsPayload {
 }
 
 interface Props {
-  apiUrl: string;
+  apiUrl?: string;  // tidak dipakai lagi — WebSocket memakai window.location.host
   onDetections: (payload: WsPayload) => void;
   onManualCapture?: (blob: Blob) => void;
   active: boolean;
@@ -37,7 +37,7 @@ const COLORS: Record<number, string> = {
 
 type FacingMode = "environment" | "user";
 
-export default function CameraView({ apiUrl, onDetections, onManualCapture, active }: Props) {
+export default function CameraView({ onDetections, onManualCapture, active }: Props) {
   const videoRef  = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef     = useRef<WebSocket | null>(null);
@@ -101,8 +101,14 @@ export default function CameraView({ apiUrl, onDetections, onManualCapture, acti
   // ── WebSocket ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!active) return;
-    const wsUrl = apiUrl.replace(/^https?/, (m) => m === "https" ? "wss" : "ws") + "/ws/predict";
-    const ws    = new WebSocket(wsUrl);
+
+    // Selalu gunakan window.location.host agar WebSocket otomatis
+    // menyesuaikan host browser — bekerja di dev (localhost) maupun
+    // production (IP/domain server) tanpa perlu env variable.
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${proto}://${window.location.host}/ws/predict`;
+
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onmessage = (e) => {
@@ -134,7 +140,7 @@ export default function CameraView({ apiUrl, onDetections, onManualCapture, acti
     ws.onerror = () => setCamError("WebSocket error — pastikan backend berjalan.");
     return () => { ws.close(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, apiUrl]);
+  }, [active]);
 
   // ── Send frames (150ms — lebih cepat untuk tracking stabilitas) ───────────
   const sendFrame = useCallback(() => {

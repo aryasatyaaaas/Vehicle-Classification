@@ -8,7 +8,9 @@ import GolonganModal from "@/components/GolonganModal";
 import type { Detection, WsPayload } from "@/components/CameraView";
 import tollGatesData from "@/app/toll-gates.json";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Selalu gunakan path relatif — nginx (production) dan next.config rewrites (dev)
+// akan meneruskan /api/* ke backend. Tidak bergantung pada env variable.
+const REST_URL = "/api";
 const DEFAULT_GERBANG = "GT Kalikangkung";
 
 // Cari pintu keluar terdekat berdasarkan nama pintu masuk
@@ -211,7 +213,7 @@ export default function HomePage() {
     try {
       const form = new FormData();
       form.append("file", blob, "capture.jpg");
-      const res  = await fetch(`${API_URL}/capture`, { method: "POST", body: form });
+      const res  = await fetch(`${REST_URL}/capture`, { method: "POST", body: form });
       const data = await res.json();
 
       if (data.detections?.length > 0) {
