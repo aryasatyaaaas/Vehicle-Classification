@@ -430,7 +430,6 @@ export default function HomePage() {
             appState === "stabilizing" ? "is-stable" : ""
           }`}>
             <CameraView
-              apiUrl={API_URL}
               onDetections={handleDetections}
               onManualCapture={handleManualCapture}
               active={true}
