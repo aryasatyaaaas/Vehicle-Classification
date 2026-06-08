@@ -1,6 +1,6 @@
 """
 FastAPI Backend - Vehicle Classification API
-v2.0 — Smart Capture + Vehicle Stability Detection
+v3.0 — Smart Capture + Vehicle Stability Detection + Two-Stage Plate Detection (eTilang-style)
 """
 
 import asyncio
@@ -76,11 +76,19 @@ async def load_model():
     else:
         print(f"[WARN] Model tidak ditemukan di {MODEL_PATH}")
 
-    print("[WAIT] Pre-loading EasyOCR di background thread...")
     loop = asyncio.get_event_loop()
+
+    # Pre-load EasyOCR di background thread
+    print("[WAIT] Pre-loading EasyOCR di background thread...")
     import plate_ocr
     await loop.run_in_executor(_ocr_executor, plate_ocr.get_reader)
     print("[OK] EasyOCR siap.")
+
+    # Pre-load plate detection model (Stage 2 / eTilang-style)
+    print("[WAIT] Pre-loading plate detection model (Stage 2)...")
+    import plate_detector
+    await loop.run_in_executor(_ocr_executor, plate_detector.get_plate_model)
+    print("[OK] Plate detection model siap.")
 
 
 @app.get("/health")
@@ -433,7 +441,9 @@ async def ws_predict(websocket: WebSocket):
                 ):
                     print(f"[STABLE] Kendaraan stabil setelah {stable_count} frame — memilih frame terbaik...")
                     tracker.already_captured = True
-                    sharpest = tracker.select_sharpest_frame() or img_orig
+                    sharpest = tracker.select_sharpest_frame()
+                    if sharpest is None:
+                        sharpest = img_orig
                     bbox_copy = dict(top_bbox)
                     ocr_future = loop.run_in_executor(
                         _ocr_executor, read_plate, sharpest, bbox_copy

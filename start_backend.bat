@@ -9,4 +9,4 @@ echo  Starting FastAPI Backend...
 echo  API Docs : http://localhost:8000/docs
 echo  Press Ctrl+C to stop.
 echo.
-python main.py
+venv\Scripts\python.exe main.py

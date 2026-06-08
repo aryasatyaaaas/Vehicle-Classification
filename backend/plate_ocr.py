@@ -1,7 +1,10 @@
 """
-plate_ocr.py — Plate Number Recognition Helper v2.0
+plate_ocr.py — Plate Number Recognition Helper v3.0
 Menggunakan EasyOCR untuk membaca plat nomor kendaraan Indonesia.
-v2.0: Multi-pass preprocessing, scale-up untuk crop kecil, confidence lebih ketat.
+v3.0: Integrasi pipeline dua tahap (eTilang-style).
+  - Stage 2: plate_detector.py mengirim crop plat PRESISI sebelum OCR
+  - Multi-pass preprocessing pada crop yang sudah bersih
+  - Fallback otomatis jika plate detector gagal
 """
 
 import re
@@ -94,46 +97,56 @@ def _normalize_plate(text: str) -> Optional[str]:
 def _preprocess_plate(img: np.ndarray) -> List[np.ndarray]:
     """
     Hasilkan beberapa variasi preprocessing untuk diuji OCR.
+    Input idealnya sudah berupa crop plat yang presisi (dari plate_detector).
     Multi-pass meningkatkan kemungkinan salah satu variasi berhasil dibaca.
     """
     h, w = img.shape[:2]
 
-    # ── Step 1: Scale-up agresif untuk gambar kecil ────────────────────────────────────
-    # Target: minimal 200px tinggi, ideal 280px
+    # ── Scale-up agresif untuk plat kecil ────────────────────────────────────
+    # Target tinggi ideal 280px agar karakter terbaca jelas
     target_h = 280
     if h < target_h:
         scale = target_h / h
-        new_w = max(1, int(w * scale))
-        new_h = max(1, int(h * scale))
+        new_w  = max(1, int(w * scale))
+        new_h  = max(1, int(h * scale))
         img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
         h, w = new_h, new_w
 
-    # Jika terlalu besar, kecilkan sedikit
-    max_h = 400
+    # Batasi ukuran maksimum agar tidak terlalu besar
+    max_h = 420
     if h > max_h:
         scale = max_h / h
-        img = cv2.resize(img, (max(1, int(w * scale)), max(1, int(h * scale))), interpolation=cv2.INTER_AREA)
+        img = cv2.resize(img,
+                         (max(1, int(w * scale)), max(1, int(h * scale))),
+                         interpolation=cv2.INTER_AREA)
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # ── Pass 1: CLAHE + Otsu threshold ─────────────────────────────────────────────────────
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
+    # ── Pass 1: CLAHE + Otsu threshold ───────────────────────────────────────
+    clahe      = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
     gray_clahe = clahe.apply(gray)
-    _, otsu = cv2.threshold(gray_clahe, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, otsu    = cv2.threshold(gray_clahe, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    # ── Pass 2: Adaptive threshold (lebih baik untuk pencahayaan tidak merata) ─
+    # ── Pass 2: Adaptive threshold (pencahayaan tidak merata) ────────────────
+    # FIX v3.0: gunakan gray_clahe, bukan gray_eq (variable tidak terdefinisi)
     adaptive = cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 13, 6
+        gray_clahe, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 13, 6
     )
+
+    # ── Pass 3: Gambar asli (grayscale normal, tanpa threshold) ──────────────
+    # Kadang EasyOCR lebih baik dengan gambar grayscale tanpa binarisasi
+    gray_3ch = cv2.cvtColor(gray_clahe, cv2.COLOR_GRAY2BGR)
 
     return [
         cv2.cvtColor(otsu, cv2.COLOR_GRAY2BGR),
         cv2.cvtColor(adaptive, cv2.COLOR_GRAY2BGR),
+        gray_3ch,
     ]
 
 
 def _run_ocr(img: np.ndarray) -> Optional[str]:
     reader = get_reader()
+    # Multi-pass preprocessing untuk meningkatkan akurasi OCR
     passes = _preprocess_plate(img)
 
     best_plate = None
@@ -208,6 +221,12 @@ def _closeup_regions(frame: np.ndarray) -> List[np.ndarray]:
 
 
 def read_plate(frame: np.ndarray, bbox: dict) -> Optional[str]:
+    """
+    Baca plat nomor dari frame menggunakan pipeline dua tahap (eTilang-style):
+      1. plate_detector.extract_plate_image() → crop plat presisi via YOLO
+      2. EasyOCR pada crop yang bersih
+    Fallback otomatis ke crop rasio jika plate detector gagal.
+    """
     try:
         fh, fw = frame.shape[:2]
         bbox_w = bbox["x2"] - bbox["x1"]
@@ -215,22 +234,32 @@ def read_plate(frame: np.ndarray, bbox: dict) -> Optional[str]:
         is_fullframe = (bbox_w >= fw * 0.85 and bbox_h >= fh * 0.85)
 
         if is_fullframe:
-            print("[OCR] Close-up mode...")
+            # Mode close-up: kendaraan sangat dekat, cari plat di seluruh frame
+            print("[OCR] Close-up mode — deteksi plat dari full frame...")
+            from plate_detector import extract_plate_from_fullframe
+            plate_crop = extract_plate_from_fullframe(frame)
+            if plate_crop is not None:
+                sharp = _sharpness(plate_crop)
+                if sharp >= 2.0:
+                    return _run_ocr(plate_crop)
+            # Fallback ke region scan lama jika plate_detector gagal
             for region in _closeup_regions(frame):
                 result = _run_ocr(region)
                 if result:
                     return result
             return None
         else:
-            crop = _crop_from_bbox(frame, bbox)
-            if crop is None:
+            # Mode normal: gunakan plate_detector untuk crop plat presisi
+            from plate_detector import extract_plate_image
+            plate_crop = extract_plate_image(frame, bbox)
+            if plate_crop is None:
                 return None
-            sharp = _sharpness(crop)
-            if sharp < 3.0:
-                print(f"[OCR] Crop blur ({sharp:.1f}), skip")
+            sharp = _sharpness(plate_crop)
+            if sharp < 2.0:
+                print(f"[OCR] Plate crop terlalu blur ({sharp:.1f}), skip")
                 return None
-            print(f"[OCR] Running OCR — sharpness: {sharp:.1f}")
-            return _run_ocr(crop)
+            print(f"[OCR] Running OCR pada crop plat — sharpness: {sharp:.1f}")
+            return _run_ocr(plate_crop)
 
     except Exception as e:
         print(f"⚠️  OCR error: {e}")
@@ -240,6 +269,7 @@ def read_plate(frame: np.ndarray, bbox: dict) -> Optional[str]:
 def read_plate_from_frame(frame: np.ndarray) -> Optional[str]:
     """
     Shortcut untuk membaca plat dari full frame (close-up, tanpa bbox YOLO).
+    Menggunakan plate_detector untuk mencari plat di seluruh frame.
     """
     full_bbox = {"x1": 0, "y1": 0, "x2": frame.shape[1], "y2": frame.shape[0]}
     return read_plate(frame, full_bbox)
