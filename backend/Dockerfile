@@ -28,15 +28,7 @@ RUN python -c "import easyocr; easyocr.Reader(['en'], gpu=False)" || true
 
 # Pre-download plate detection model dari HuggingFace saat build
 # Agar tidak timeout saat startup container (bisa makan 30-60s jika download saat runtime)
-RUN python -c "
-import os, sys
-try:
-    from ultralytics import YOLO
-    model = YOLO('keremberke/yolov8m-license-plate-detection')
-    print('[BUILD] Plate detection model downloaded OK')
-except Exception as e:
-    print(f'[BUILD] Plate model download skipped: {e}', file=sys.stderr)
-" || true
+RUN python -c "from ultralytics import YOLO; YOLO('keremberke/yolov8m-license-plate-detection'); print('[BUILD] Plate model OK')" || true
 
 # Port FastAPI
 EXPOSE 8000
