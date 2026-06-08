@@ -18,13 +18,25 @@ COPY requirements-docker.txt .
 RUN pip install --no-cache-dir -r requirements-docker.txt
 
 # Copy source code
-COPY main.py plate_ocr.py run_server.py ./
+COPY main.py plate_ocr.py plate_detector.py run_server.py ./
 
 # Copy model YOLOv8 (best.pt harus ada di folder models/)
 COPY models/ ./models/
 
 # Pre-download EasyOCR models saat build agar tidak download saat runtime
 RUN python -c "import easyocr; easyocr.Reader(['en'], gpu=False)" || true
+
+# Pre-download plate detection model dari HuggingFace saat build
+# Agar tidak timeout saat startup container (bisa makan 30-60s jika download saat runtime)
+RUN python -c "
+import os, sys
+try:
+    from ultralytics import YOLO
+    model = YOLO('keremberke/yolov8m-license-plate-detection')
+    print('[BUILD] Plate detection model downloaded OK')
+except Exception as e:
+    print(f'[BUILD] Plate model download skipped: {e}', file=sys.stderr)
+" || true
 
 # Port FastAPI
 EXPOSE 8000
