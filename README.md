@@ -1,300 +1,449 @@
-# ⚡ VoltTrack — EV Charging Tracker
+# 🚗 Vehicle Classification Tol
 
-![Next.js](https://img.shields.io/badge/Next.js-16.1.6-black?logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+> Sistem klasifikasi dan pembacaan plat nomor kendaraan tol secara real-time menggunakan YOLOv8, FastAPI, dan Next.js.
 
-> Track your electric vehicle charging sessions, energy usage, and costs — all in one place.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-purple?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PC9zdmc+)](https://ultralytics.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Dataset](https://img.shields.io/badge/Dataset-Roboflow-purple?logo=roboflow)](https://universe.roboflow.com/muhammad-rizky-ferdiansyah-00fow/golongan-kendaraan-jalan-tol-lingkar-luar-jakarta-timur/dataset/5)
 
 ---
 
 ## 📖 Deskripsi
 
-**VoltTrack** adalah aplikasi web berbasis **Progressive Web App (PWA)** yang membantu pemilik kendaraan listrik (EV) untuk mencatat, memantau, dan menganalisis sesi pengisian daya kendaraan mereka. Dengan VoltTrack, pengguna dapat melacak konsumsi energi (kWh), biaya pengisian, durasi sesi, serta mendapatkan insight melalui visualisasi data yang interaktif.
+**Vehicle Classification Tol** adalah sistem berbasis AI untuk mengklasifikasikan golongan kendaraan di gerbang tol secara real-time. Sistem ini memadukan deteksi objek YOLOv8 dengan pembacaan plat nomor (EasyOCR) dan menyajikan hasilnya melalui antarmuka web modern.
+
+**Masalah yang diselesaikan:**
+- Identifikasi manual golongan kendaraan di gerbang tol yang lambat dan rawan kesalahan manusia.
+- Membutuhkan sistem otomatis yang dapat mendeteksi golongan kendaraan (GOL I–V standar Jasa Marga) sekaligus membaca plat nomor dalam satu pipeline yang efisien.
 
 ---
 
-## ✨ Fitur Utama
+## ✨ Fitur
 
-- 🔐 **Autentikasi Aman** — Register & login dengan JWT-based authentication dan proteksi CSRF token
-- ⚡ **Pencatatan Sesi Pengisian** — Catat sesi charging dengan detail: energi (kWh), biaya, lokasi, tipe charger, durasi, dan level baterai
-- 📊 **Dashboard Interaktif** — Ringkasan statistik penggunaan bulan ini, tren mingguan, dan aktivitas terbaru
-- 📈 **Analytics Mendalam** — Grafik dan visualisasi data konsumsi energi & biaya per periode
-- 🗺️ **Peta Stasiun** — Peta interaktif berbasis Leaflet untuk melihat lokasi stasiun pengisian
-- 📜 **Riwayat Sesi** — Halaman history lengkap dengan filter dan pagination
-- 👤 **Manajemen Profil** — Pengaturan preferensi pengguna: nama kendaraan EV, lokasi default, harga per kWh, mata uang, dan lokasi favorit
-- 📱 **PWA Support** — Dapat diinstall sebagai aplikasi di smartphone (Android & iOS)
-- 🌗 **Dark / Light Mode** — Toggle tema tanpa flash, disimpan di localStorage
-- 🐳 **Docker Ready** — Siap di-deploy menggunakan Docker dan Docker Compose
-- 📄 **Export PDF** — Ekspor data sesi ke format PDF menggunakan jsPDF
+- 🎯 **Deteksi Real-time** — Streaming frame via WebSocket dengan latensi rendah
+- 🧠 **Smart Capture** — Deteksi stabilitas bounding box antar frame; OCR hanya dijalankan saat kendaraan berhenti (hemat komputasi)
+- 🔤 **Plate OCR** — Pembacaan plat nomor dua tahap: crop region → EasyOCR
+- 📸 **Manual Capture** — Tombol capture untuk operator; pemilihan frame paling tajam otomatis
+- 🖼️ **Image Upload** — Analisis gambar statis via endpoint `/predict`
+- 📊 **5 Kelas Kendaraan** — GOL I sampai GOL V sesuai standar Jasa Marga
+- 🔒 **HTTPS Ready** — Nginx reverse proxy dengan HTTPS untuk akses kamera browser
+- 🐳 **Docker Compose** — Deploy satu perintah ke server/VM
+- 🖥️ **Desktop App** — Dukungan Tauri untuk membangun aplikasi desktop native
+
+---
+
+## 🏷️ Kelas Kendaraan
+
+| ID | Golongan | Deskripsi | Warna |
+|----|----------|-----------|-------|
+| 0 | **GOL I** | Sedan / Jip / Pick-up / Bus | 🟢 Hijau |
+| 1 | **GOL II** | Truk 2 Gandar | 🔵 Biru |
+| 2 | **GOL III** | Truk 3 Gandar | 🟡 Kuning |
+| 3 | **GOL IV** | Truk 4 Gandar | 🔴 Merah |
+| 4 | **GOL V** | Truk 5 Gandar atau lebih | 🟣 Ungu |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Kategori         | Teknologi                                               |
-|------------------|---------------------------------------------------------|
-| **Framework**    | [Next.js 16](https://nextjs.org/) (App Router)          |
-| **Language**     | [TypeScript 5](https://www.typescriptlang.org/)         |
-| **UI**           | React 19, Tailwind CSS v4, Framer Motion, Lucide Icons  |
-| **Forms**        | React Hook Form + Zod                                   |
-| **Data Fetching**| TanStack React Query v5                                 |
-| **ORM**          | [Prisma 7](https://www.prisma.io/) + `@prisma/adapter-pg` |
-| **Database**     | PostgreSQL 16                                           |
-| **Auth**         | JWT (via `jose`), bcryptjs, CSRF protection             |
-| **Maps**         | Leaflet + React Leaflet + react-leaflet-cluster         |
-| **Charts**       | Chart.js + react-chartjs-2                              |
-| **PDF Export**   | jsPDF + jsPDF-AutoTable                                 |
-| **Font**         | Plus Jakarta Sans, JetBrains Mono (Google Fonts)        |
-| **Container**    | Docker + Docker Compose                                 |
+| Layer | Teknologi |
+|-------|-----------|
+| **AI / ML** | YOLOv8n (Ultralytics ≥ 8.2), PyTorch ≥ 2.0 |
+| **OCR** | EasyOCR ≥ 1.7 |
+| **Backend** | FastAPI ≥ 0.111, Uvicorn, Python 3.10+ |
+| **Image Processing** | OpenCV ≥ 4.8, NumPy, Pillow |
+| **Frontend** | Next.js 15, React 19, Tailwind CSS 4, TypeScript |
+| **Desktop** | Tauri 2 (opsional) |
+| **Reverse Proxy** | Nginx (HTTPS, self-signed cert) |
+| **Containerization** | Docker + Docker Compose |
+| **Dataset** | Roboflow Universe (Public Domain) |
 
 ---
 
 ## 📋 Prerequisites
 
-Pastikan tools berikut sudah terinstall sebelum menjalankan project:
+Pastikan software berikut sudah terinstall sebelum memulai:
 
-| Tool          | Versi Minimum | Link                                                    |
-|---------------|---------------|---------------------------------------------------------|
-| Node.js       | 20.x          | [nodejs.org](https://nodejs.org/)                       |
-| npm           | 10.x          | (bundled dengan Node.js)                                |
-| PostgreSQL    | 16.x          | [postgresql.org](https://www.postgresql.org/)           |
-| Docker        | 24.x+         | [docker.com](https://www.docker.com/) *(opsional)*      |
-| Docker Compose| v2+           | [docs.docker.com](https://docs.docker.com/compose/)     |
+| Software | Versi Minimum | Link |
+|----------|--------------|------|
+| Python | 3.10 | [python.org](https://www.python.org/downloads/) |
+| Node.js | 18 LTS | [nodejs.org](https://nodejs.org/) |
+| Git | terbaru | [git-scm.com](https://git-scm.com/) |
+| Docker + Docker Compose | terbaru | [docs.docker.com](https://docs.docker.com/get-docker/) *(untuk deployment)* |
+
+> **Catatan GPU:** Training sangat disarankan menggunakan GPU (CUDA). Untuk inferensi/backend, CPU sudah cukup.
 
 ---
 
-## 🚀 Instalasi
+## ⚡ Installation & Quick Start
 
-### Opsi A — Manual (Local Development)
+### 1. Clone Repository
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/aryasatyaaaas/VoltTrack.git
-cd VoltTrack
+git clone https://github.com/aryasatyaaaas/Vehicle-Classification.git
+cd Vehicle-Classification
+```
 
-# 2. Install dependencies
+### 2. Setup Environment Otomatis
+
+Script berikut akan membuat virtual environment dan menginstall semua dependensi untuk modul `ai/` dan `backend/`.
+
+**Windows:**
+```bat
+setup_env.bat
+```
+
+**Linux / macOS:**
+```bash
+bash setup_env.sh
+```
+
+### 3. Konfigurasi Environment
+
+```bash
+cp .env.example .env
+```
+
+Edit file `.env` sesuai konfigurasi server Anda (lihat bagian [Konfigurasi](#konfigurasi)).
+
+---
+
+## 🚀 Usage / Cara Pakai
+
+### Mode Development (Lokal)
+
+#### A. Training Model (Opsional — skip jika sudah punya `best.pt`)
+
+```bash
+cd ai
+
+# Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
+
+# Mulai training (±3–8 jam di CPU)
+python train.py
+```
+
+Setelah selesai, model terbaik otomatis disalin ke `backend/models/best.pt`.
+
+Jika model sudah ada di folder `runs/`, ekspor manual:
+```bash
+python export_model.py
+```
+
+#### B. Jalankan Backend API
+
+```bash
+cd backend
+
+# Windows
+venv\Scripts\activate
+# Linux / macOS
+source venv/bin/activate
+
+python main.py
+# API tersedia di → http://localhost:8000
+# Dokumentasi Swagger → http://localhost:8000/docs
+```
+
+#### C. Jalankan Frontend
+
+```bash
+cd frontend
 npm install
-
-# 3. Buat file environment
-cp .env .env.local
-# Lalu edit .env.local sesuai konfigurasi lokal Anda
-
-# 4. Jalankan migrasi database
-npx prisma migrate deploy
-
-# 5. (Opsional) Seed database dengan data awal
-npx prisma db seed
-
-# 6. Generate Prisma Client
-npx prisma generate
-
-# 7. Jalankan development server
 npm run dev
+# UI tersedia di → http://localhost:3000
 ```
-
-Aplikasi akan berjalan di: **http://localhost:3000**
 
 ---
 
-### Opsi B — Docker Compose (Recommended untuk Production)
+### Mode Production (Docker)
+
+Deploy seluruh stack (Backend + Frontend + Nginx HTTPS) dengan satu perintah:
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/aryasatyaaaas/VoltTrack.git
-cd VoltTrack
+# Salin dan isi file .env terlebih dahulu
+cp .env.example .env
 
-# 2. Set JWT_SECRET sebagai environment variable
-export JWT_SECRET="your-super-secret-jwt-key-here"
+# Build dan jalankan semua service
+docker compose up --build -d
 
-# 3. Jalankan semua service (app + database)
-docker compose up -d
+# Cek status service
+docker compose ps
 
-# 4. Jalankan migrasi database (sekali saja)
-docker compose exec volttrack-app npx prisma migrate deploy
+# Lihat log real-time
+docker compose logs -f
 ```
 
-Aplikasi akan berjalan di: **http://localhost:3000**
+Akses aplikasi:
+- **HTTPS (utama)**: `https://<IP_VM>`
+- **HTTP fallback**: `http://<IP_VM>:8080`
+- **API langsung**: `http://<IP_VM>:8000`
+- **API Docs**: `http://<IP_VM>:8000/docs`
 
----
+> **Penting:** HTTPS diperlukan agar browser mengizinkan akses kamera.
 
-## 🖥️ Cara Pakai
-
-| Halaman      | Route          | Deskripsi                                        |
-|--------------|----------------|--------------------------------------------------|
-| Landing Page | `/`            | Halaman publik pengenalan VoltTrack              |
-| Login        | `/login`       | Login ke akun VoltTrack                          |
-| Register     | `/register`    | Buat akun baru                                   |
-| Dashboard    | `/dashboard`   | Ringkasan statistik & sesi terbaru               |
-| Add Session  | `/charging`    | Form tambah sesi pengisian baru                  |
-| History      | `/history`     | Riwayat semua sesi charging                      |
-| Analytics    | `/analytics`   | Grafik & insight konsumsi energi dan biaya       |
-| Profile      | `/profile`     | Pengaturan profil & preferensi pengguna          |
+Untuk menghentikan:
+```bash
+docker compose down
+```
 
 ---
 
 ## ⚙️ Konfigurasi
 
-Buat file `.env.local` di root project dengan variabel berikut:
+Salin `.env.example` ke `.env` lalu sesuaikan nilai berikut:
 
 ```env
-# URL koneksi ke database PostgreSQL
-DATABASE_URL="postgresql://postgres:postgres@localhost:5433/volttrack"
+# IP atau domain server/VM Anda
+# Contoh: http://192.168.1.100:8000 atau https://tol.namadomain.com/api
+NEXT_PUBLIC_API_URL=http://192.168.1.100:8000
 
-# Secret key untuk signing JWT token (gunakan string panjang yang aman)
-JWT_SECRET="your-super-secret-jwt-key-here"
+# Opsional: nama domain jika ada
+# DOMAIN=tol.namadomain.com
 ```
 
-> **⚠️ Penting:** Jangan pernah commit file `.env.local` ke repository. Pastikan sudah terdaftar di `.gitignore`.
+| Variable | Keterangan | Contoh |
+|----------|-----------|--------|
+| `NEXT_PUBLIC_API_URL` | URL backend API yang bisa diakses frontend | `http://192.168.1.100:8000` |
+| `DOMAIN` | Domain untuk konfigurasi Nginx (opsional) | `tol.example.com` |
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Documentation
 
-| Method   | Endpoint                    | Deskripsi                          | Auth |
-|----------|-----------------------------|------------------------------------|------|
-| `POST`   | `/api/auth/register`        | Registrasi pengguna baru           | ❌   |
-| `POST`   | `/api/auth/login`           | Login dan mendapatkan JWT cookie   | ❌   |
-| `POST`   | `/api/auth/logout`          | Logout dan hapus cookie sesi       | ✅   |
-| `GET`    | `/api/csrf`                 | Mendapatkan CSRF token             | ❌   |
-| `GET`    | `/api/sessions`             | Ambil semua sesi charging          | ✅   |
-| `POST`   | `/api/sessions`             | Tambah sesi charging baru          | ✅   |
-| `GET`    | `/api/history`              | Ambil riwayat sesi dengan filter   | ✅   |
-| `GET`    | `/api/profile`              | Ambil data profil pengguna         | ✅   |
-| `PATCH`  | `/api/profile`              | Update profil & preferensi         | ✅   |
-| `GET`    | `/api/stations`             | Ambil data lokasi stasiun          | ✅   |
-| `GET`    | `/api/health`               | Health check endpoint              | ❌   |
+Base URL: `http://localhost:8000`
 
-> Semua endpoint yang membutuhkan auth (`✅`) memerlukan JWT cookie yang valid dan header `X-CSRF-Token`.
+| Method | Endpoint | Deskripsi | Body |
+|--------|----------|-----------|------|
+| `GET` | `/` | Info status API & model | — |
+| `GET` | `/health` | Health check (digunakan Docker & Tauri) | — |
+| `GET` | `/classes` | Daftar 5 kelas kendaraan beserta info | — |
+| `POST` | `/predict` | Upload gambar statis → hasil deteksi + plat | `multipart/form-data`: `file`, `conf` (opsional, default 0.15) |
+| `POST` | `/capture` | Capture manual operator (full pipeline) | `multipart/form-data`: `file` |
+| `WS` | `/ws/predict` | Live stream frame → deteksi + stabilitas + plat | Binary JPEG frames |
+
+### Contoh Response `/predict`
+
+```json
+{
+  "filename": "kendaraan.jpg",
+  "image_size": { "width": 1280, "height": 720 },
+  "inference_ms": 120.5,
+  "total_detections": 1,
+  "detections": [
+    {
+      "class_id": 0,
+      "class_name": "GOL I",
+      "description": "Sedan / Jip / Pick-up / Bus",
+      "color": "#22c55e",
+      "confidence": 0.9341,
+      "bbox": { "x1": 100, "y1": 80, "x2": 640, "y2": 500 },
+      "plate_number": "B 1234 XYZ"
+    }
+  ]
+}
+```
+
+### WebSocket Response Schema
+
+```json
+{
+  "detections": [...],
+  "stability_count": 4,
+  "stable": false,
+  "stability_max": 5,
+  "plate_update": "B 1234 XYZ"
+}
+```
+
+> Dokumentasi interaktif Swagger tersedia di `/docs` dan ReDoc di `/redoc`.
 
 ---
 
 ## 📁 Struktur Folder
 
 ```
-ev_track/
-├── prisma/
-│   ├── schema.prisma          # Definisi skema database
-│   ├── seed.ts                # Script seed data
-│   └── migrations/            # File migrasi database
-├── public/
-│   ├── icons/                 # Icon PWA
-│   └── sw.js                  # Service Worker
-├── src/
-│   ├── app/
-│   │   ├── (dashboard)/       # Route group halaman utama (protected)
-│   │   │   ├── analytics/     # Halaman analytics
-│   │   │   ├── charging/      # Halaman tambah sesi
-│   │   │   ├── dashboard/     # Halaman dashboard
-│   │   │   ├── history/       # Halaman riwayat sesi
-│   │   │   └── profile/       # Halaman profil
-│   │   ├── api/               # API route handlers
-│   │   │   ├── auth/          # Auth endpoints (login, register, logout)
-│   │   │   ├── sessions/      # Charging session CRUD
-│   │   │   ├── history/       # History dengan filter & pagination
-│   │   │   ├── profile/       # Profile management
-│   │   │   ├── stations/      # Station data
-│   │   │   └── health/        # Health check
-│   │   ├── login/             # Halaman login (public)
-│   │   ├── register/          # Halaman register (public)
-│   │   ├── layout.tsx         # Root layout + font + PWA
-│   │   ├── manifest.ts        # PWA manifest
-│   │   └── globals.css        # Global styles & design tokens
-│   ├── components/
-│   │   ├── analytics/         # Komponen halaman analytics
-│   │   ├── auth/              # CsrfProvider, form auth
-│   │   ├── charging/          # ChargingForm
-│   │   ├── dashboard/         # PersonalHero, HighlightCards, Timeline
-│   │   ├── history/           # Tabel & filter riwayat
-│   │   ├── landing/           # Komponen landing page
-│   │   ├── layout/            # Sidebar, Navbar, ThemeToggle
-│   │   ├── map/               # Leaflet map components
-│   │   ├── profile/           # ProfileForm, DangerZone
-│   │   ├── pwa/               # PWARegister
-│   │   └── ui/                # Reusable UI components
-│   ├── hooks/                 # Custom React hooks
-│   ├── lib/                   # Prisma client, session, errors, utils
-│   ├── services/              # Server-side data fetching services
-│   └── types/                 # TypeScript type definitions
-├── .env                       # Environment variables template
-├── .gitignore
-├── docker-compose.yml         # Docker Compose config
-├── Dockerfile                 # Multi-stage Docker build
-├── next.config.ts             # Next.js configuration
-├── prisma.config.ts           # Prisma CLI configuration
-├── package.json
-└── tsconfig.json
+Vehicle_Classification/
+├── ai/                          # Modul AI: training & inferensi
+│   ├── dataset/                 # data.yaml untuk YOLOv8
+│   ├── runs/                    # Output training (weights, plots, metrics)
+│   ├── train.py                 # Script training utama (YOLOv8n, CPU-optimized)
+│   ├── predict.py               # Inferensi gambar/video via CLI
+│   ├── export_model.py          # Salin best.pt ke backend/models/
+│   ├── export.py                # Export ke ONNX
+│   ├── evaluate.py              # Evaluasi metrik & visualisasi
+│   ├── generate_report.py       # Generate laporan PDF
+│   ├── train_colab.ipynb        # Notebook Google Colab (GPU)
+│   ├── requirements.txt
+│   └── yolov8n.pt               # Base pretrained model
+│
+├── backend/                     # FastAPI REST API + WebSocket
+│   ├── models/                  # Letakkan best.pt di sini
+│   ├── uploads/                 # Temporary file upload storage
+│   ├── main.py                  # Entry point API (v3.0)
+│   ├── plate_detector.py        # Stage-1 plate region detection
+│   ├── plate_ocr.py             # EasyOCR plate reader
+│   ├── plate_postprocess.py     # Post-processing hasil OCR
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── frontend/                    # Next.js 15 Web UI
+│   ├── src/
+│   │   └── app/                 # Next.js App Router
+│   ├── public/
+│   ├── src-tauri/               # Tauri desktop app config
+│   ├── Dockerfile
+│   └── package.json
+│
+├── nginx/                       # Reverse proxy HTTPS
+│   ├── nginx.conf
+│   └── Dockerfile
+│
+├── train/                       # Dataset training (gambar + label)
+├── valid/                       # Dataset validasi
+├── test/                        # Dataset test
+│
+├── docker-compose.yml           # Orkestrasi semua service
+├── data.yaml                    # Konfigurasi dataset YOLOv8
+├── setup_env.bat                # Setup otomatis Windows
+├── setup_env.sh                 # Setup otomatis Linux/macOS
+├── train.bat                    # Shortcut training di Windows
+├── .env.example                 # Template konfigurasi
+└── .gitignore
 ```
 
 ---
 
-## 🐳 Deployment dengan Docker
+## 📊 Dataset
+
+| Atribut | Detail |
+|---------|--------|
+| **Sumber** | [Roboflow Universe](https://universe.roboflow.com/muhammad-rizky-ferdiansyah-00fow/golongan-kendaraan-jalan-tol-lingkar-luar-jakarta-timur/dataset/5) |
+| **Nama** | Golongan Kendaraan Jalan Tol Lingkar Luar Jakarta Timur |
+| **Versi** | v5 (2023-08-03) |
+| **Jumlah Gambar** | 1.453 (setelah augmentasi) |
+| **Format Label** | YOLOv8 |
+| **Resolusi** | 640 × 640 px |
+| **Lisensi** | Public Domain |
+
+**Augmentasi yang diterapkan:**
+- Flip horizontal (50%)
+- Rotasi 90° (acak)
+- Rotasi ±15°
+- Shear horizontal & vertikal ±15°
+- Penyesuaian brightness ±25%
+
+---
+
+## 🧪 Testing & Evaluasi
+
+### Jalankan Evaluasi Model
 
 ```bash
-# Build dan jalankan semua container
-docker compose up -d --build
+cd ai
+source venv/bin/activate   # atau venv\Scripts\activate di Windows
 
-# Lihat log aplikasi
-docker compose logs -f volttrack-app
+# Evaluasi metrik (mAP, Precision, Recall, Confusion Matrix)
+python evaluate.py
 
-# Hentikan semua container
-docker compose down
+# Inferensi pada gambar/video tertentu
+python predict.py --source path/to/image.jpg
 
-# Hentikan dan hapus volume (data database)
-docker compose down -v
+# Generate laporan PDF
+python generate_report.py
+```
+
+### Cek Health Backend
+
+```bash
+curl http://localhost:8000/health
+# Response: {"status": "ok", "model_loaded": true}
+```
+
+### Lint Frontend
+
+```bash
+cd frontend
+npm run lint
 ```
 
 ---
 
-## 🤝 Contributing
+## 🖥️ Desktop App (Tauri) — Opsional
 
-Kontribusi sangat disambut! Berikut cara berkontribusi:
+Proyek ini mendukung build sebagai aplikasi desktop native menggunakan Tauri 2.
 
-1. **Fork** repository ini
-2. Buat branch fitur baru: `git checkout -b feature/nama-fitur`
-3. Commit perubahan: `git commit -m 'feat: tambahkan fitur X'`
-4. Push ke branch: `git push origin feature/nama-fitur`
-5. Buka **Pull Request** ke branch `main`
+**Prerequisites tambahan:** Rust toolchain (`rustup`)
 
-Gunakan [Conventional Commits](https://www.conventionalcommits.org/) untuk pesan commit (`feat:`, `fix:`, `docs:`, `chore:`, dll).
+```bash
+cd frontend
+
+# Development mode
+npm run tauri:dev
+
+# Build distributable (.exe / .dmg / .AppImage)
+npm run tauri:build
+```
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Notifikasi pengingat pengisian (push notification)
-- [ ] Integrasi dengan OCPP / API stasiun publik
-- [ ] Perbandingan antar kendaraan EV
-- [ ] Export data ke format CSV
-- [ ] Dashboard admin multi-pengguna
-- [ ] Integrasi OAuth (Google, Apple)
+- [x] Klasifikasi 5 golongan kendaraan real-time via WebSocket
+- [x] Pembacaan plat nomor dengan EasyOCR (dua tahap)
+- [x] Smart capture berdasarkan stabilitas bounding box
+- [x] Deployment Docker dengan HTTPS via Nginx
+- [x] Desktop app via Tauri
+- [ ] Integrasi database untuk riwayat transaksi
+- [ ] Dashboard statistik kendaraan per shift/hari
+- [ ] Support GPU inference untuk throughput lebih tinggi
+- [ ] Export data CSV/Excel per sesi
 
 ---
 
-## 📄 License
+## 🤝 Contributing
 
-Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more information.
+Kontribusi sangat diterima! Ikuti langkah berikut:
+
+1. **Fork** repository ini
+2. **Buat branch** fitur baru: `git checkout -b feature/nama-fitur`
+3. **Commit** perubahan: `git commit -m 'feat: tambah fitur X'`
+4. **Push** ke branch: `git push origin feature/nama-fitur`
+5. **Buat Pull Request** dan jelaskan perubahan yang dibuat
+
+**Panduan commit message** (Conventional Commits):
+- `feat:` — Fitur baru
+- `fix:` — Bug fix
+- `docs:` — Perubahan dokumentasi
+- `refactor:` — Refactoring kode
+- `chore:` — Maintenance/konfigurasi
 
 ---
 
-## 👤 Author
+## 📄 Lisensi
 
-**Aryasatya**
+Proyek ini dilisensikan di bawah lisensi **MIT**. Lihat file [LICENSE](LICENSE) untuk detail lengkap.
 
-- GitHub: [@aryasatyaaaas](https://github.com/aryasatyaaaas)
+Dataset yang digunakan berlisensi **Public Domain** dari Roboflow Universe.
 
 ---
+
 
 ## 🙏 Acknowledgements
 
-- [Next.js](https://nextjs.org/) — Framework React produksi yang luar biasa
-- [Prisma](https://www.prisma.io/) — ORM modern untuk TypeScript
-- [Leaflet](https://leafletjs.com/) — Library peta open-source
-- [Chart.js](https://www.chartjs.org/) — Visualisasi data yang fleksibel
-- [Framer Motion](https://www.framer.com/motion/) — Animasi React yang halus
-- [Lucide Icons](https://lucide.dev/) — Icon pack yang konsisten dan indah
-- [TanStack Query](https://tanstack.com/query) — Manajemen state server yang powerful
+- [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) — Object detection framework
+- [EasyOCR](https://github.com/JaidedAI/EasyOCR) — OCR library untuk pembacaan plat nomor
+- [FastAPI](https://fastapi.tiangolo.com/) — High-performance Python web framework
+- [Next.js](https://nextjs.org/) — React framework untuk frontend
+- [Tauri](https://tauri.app/) — Framework desktop app berbasis web
+- [Roboflow Universe](https://universe.roboflow.com/) — Platform dataset & anotasi
+- **Muhammad Rizky Ferdiansyah** — Pembuat dataset asli di Roboflow Universe
+- [Jasa Marga](https://www.jasamarga.com/) — Standar golongan kendaraan tol Indonesia
