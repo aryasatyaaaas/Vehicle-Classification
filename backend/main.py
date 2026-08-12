@@ -36,7 +36,8 @@ IOU_STABLE_MIN    = 0.85    # minimum IoU bbox antar frame untuk dianggap "tidak
 FRAME_BUFFER_SIZE = 15      # simpan N frame terakhir untuk memilih yang paling tajam
 
 # Berapa frame kosong sebelum cache plat di-reset
-PLATE_RESET_GRACE = 8
+# Diperpanjang agar OCR tidak terpotong saat kendaraan bergeser sedikit
+PLATE_RESET_GRACE = 25
 
 CLASS_INFO = {
     0: {"name": "GOL I",   "description": "Sedan / Jip / Pick-up / Bus",  "color": "#22c55e"},
@@ -47,7 +48,10 @@ CLASS_INFO = {
 }
 
 # ── Thread pool khusus untuk OCR (CPU-bound, agar tidak blokir event loop) ──
-_ocr_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ocr-worker")
+# _ocr_executor: dipakai WebSocket streaming (1 worker, FIFO per koneksi)
+_ocr_executor     = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ocr-ws")
+# _capture_executor: dipakai endpoint /capture & /predict (terpisah agar tidak antri di belakang WS OCR)
+_capture_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ocr-capture")
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -246,7 +250,7 @@ async def predict(file: UploadFile = File(...), conf: float = 0.15):
     results = model.predict(img, conf=conf, verbose=False, augment=True)[0]
     elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
     detections = []
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     for box in results.boxes:
         cls_id   = int(box.cls)
         conf_val = float(box.conf)
@@ -277,73 +281,84 @@ async def manual_capture(file: UploadFile = File(...)):
     Endpoint untuk capture manual dari tombol operator.
     Jalankan analisis penuh: YOLO + sharpness check + OCR.
     Selalu mengembalikan hasil meski confidence rendah.
+    Menggunakan _capture_executor terpisah agar tidak antri di belakang WS OCR.
     """
-    if model is None:
-        raise HTTPException(status_code=503, detail="Model belum tersedia.")
+    try:
+        if model is None:
+            raise HTTPException(status_code=503, detail="Model belum tersedia.")
 
-    contents = await file.read()
-    nparr = np.frombuffer(contents, np.uint8)
-    img   = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    if img is None:
-        raise HTTPException(status_code=400, detail="Gagal membaca gambar.")
+        contents = await file.read()
+        nparr = np.frombuffer(contents, np.uint8)
+        img   = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is None:
+            raise HTTPException(status_code=400, detail="Gagal membaca gambar.")
 
-    sharp = sharpness_score(img)
-    print(f"[CAPTURE] Manual capture — sharpness: {sharp:.1f}")
+        sharp = sharpness_score(img)
+        print(f"[CAPTURE] Manual capture — sharpness: {sharp:.1f}")
 
-    img_proc = preprocess_frame(img.copy())
-    t0 = time.perf_counter()
-    results = model.predict(img_proc, conf=0.10, verbose=False, augment=True)[0]
-    elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
+        img_proc = preprocess_frame(img.copy())
+        t0 = time.perf_counter()
+        results = model.predict(img_proc, conf=0.10, verbose=False, augment=True)[0]
+        elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
 
-    detections = []
-    loop = asyncio.get_event_loop()
-    orig_h, orig_w = img.shape[:2]
-    proc_h, proc_w = img_proc.shape[:2]
-    scale_x = orig_w / proc_w
-    scale_y = orig_h / proc_h
+        detections = []
+        loop = asyncio.get_running_loop()
+        orig_h, orig_w = img.shape[:2]
+        proc_h, proc_w = img_proc.shape[:2]
+        scale_x = orig_w / proc_w
+        scale_y = orig_h / proc_h
 
-    for box in results.boxes:
-        cls_id   = int(box.cls)
-        conf_val = float(box.conf)
-        x1 = int(box.xyxy[0][0] * scale_x)
-        y1 = int(box.xyxy[0][1] * scale_y)
-        x2 = int(box.xyxy[0][2] * scale_x)
-        y2 = int(box.xyxy[0][3] * scale_y)
-        info = CLASS_INFO.get(cls_id, {"name": f"Class {cls_id}", "description": "-", "color": "#888"})
-        bbox = {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
-        plate = await loop.run_in_executor(_ocr_executor, read_plate, img, bbox)
-        detections.append({
-            "class_id": cls_id, "class_name": info["name"],
-            "description": info["description"], "color": info["color"],
-            "confidence": round(conf_val, 4),
-            "bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
-            "plate_number": plate,
+        for box in results.boxes:
+            cls_id   = int(box.cls)
+            conf_val = float(box.conf)
+            x1 = int(box.xyxy[0][0] * scale_x)
+            y1 = int(box.xyxy[0][1] * scale_y)
+            x2 = int(box.xyxy[0][2] * scale_x)
+            y2 = int(box.xyxy[0][3] * scale_y)
+            info = CLASS_INFO.get(cls_id, {"name": f"Class {cls_id}", "description": "-", "color": "#888"})
+            bbox = {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
+            # Gunakan _capture_executor (terpisah dari WS OCR executor)
+            plate = await loop.run_in_executor(_capture_executor, read_plate, img, bbox)
+            detections.append({
+                "class_id": cls_id, "class_name": info["name"],
+                "description": info["description"], "color": info["color"],
+                "confidence": round(conf_val, 4),
+                "bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
+                "plate_number": plate,
+                "sharpness": round(sharp, 1),
+            })
+
+        detections.sort(key=lambda d: d["confidence"], reverse=True)
+
+        # Jika tidak ada deteksi sama sekali, coba OCR full-frame
+        if not detections:
+            print("[CAPTURE] Tidak ada deteksi YOLO — coba OCR full-frame...")
+            plate = await loop.run_in_executor(_capture_executor, read_plate_from_frame, img)
+            detections = [{
+                "class_id": -1, "class_name": "Tidak Terdeteksi",
+                "description": "YOLO tidak menemukan kendaraan", "color": "#94a3b8",
+                "confidence": 0.0,
+                "bbox": {"x1": 0, "y1": 0, "x2": img.shape[1], "y2": img.shape[0]},
+                "plate_number": plate,
+                "sharpness": round(sharp, 1),
+            }]
+
+        return JSONResponse({
+            "source": "manual_capture",
+            "image_size": {"width": img.shape[1], "height": img.shape[0]},
+            "inference_ms": elapsed_ms,
             "sharpness": round(sharp, 1),
+            "total_detections": len(detections),
+            "detections": detections,
         })
 
-    detections.sort(key=lambda d: d["confidence"], reverse=True)
-
-    # Jika tidak ada deteksi sama sekali, coba OCR full-frame
-    if not detections:
-        print("[CAPTURE] Tidak ada deteksi YOLO — coba OCR full-frame...")
-        plate = await loop.run_in_executor(_ocr_executor, read_plate_from_frame, img)
-        detections = [{
-            "class_id": -1, "class_name": "Tidak Terdeteksi",
-            "description": "YOLO tidak menemukan kendaraan", "color": "#94a3b8",
-            "confidence": 0.0,
-            "bbox": {"x1": 0, "y1": 0, "x2": img.shape[1], "y2": img.shape[0]},
-            "plate_number": plate,
-            "sharpness": round(sharp, 1),
-        }]
-
-    return JSONResponse({
-        "source": "manual_capture",
-        "image_size": {"width": img.shape[1], "height": img.shape[0]},
-        "inference_ms": elapsed_ms,
-        "sharpness": round(sharp, 1),
-        "total_detections": len(detections),
-        "detections": detections,
-    })
+    except HTTPException:
+        raise
+    except Exception as exc:
+        import traceback
+        print(f"[CAPTURE] ERROR: {exc}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Capture error: {str(exc)}")
 
 
 # ── WebSocket ─────────────────────────────────────────────────────────────────
@@ -363,7 +378,7 @@ async def ws_predict(websocket: WebSocket):
     await websocket.accept()
     print("[WS] Client connected")
 
-    loop    = asyncio.get_event_loop()
+    loop    = asyncio.get_running_loop()
     tracker = VehicleTracker()
 
     ocr_future: Optional[asyncio.Future] = None
@@ -410,6 +425,19 @@ async def ws_predict(websocket: WebSocket):
                     if result:
                         tracker.last_plate = result
                         print(f"[OCR] Plat terbaca: {tracker.last_plate}")
+                        # Push plate segera ke frontend (dets belum dibangun, pakai [])
+                        try:
+                            await websocket.send_json({
+                                "detections":      [],
+                                "stability_count": tracker.stable_count,
+                                "stable":          tracker.is_stable,
+                                "stability_max":   STABILITY_FRAMES,
+                                "plate_update":    tracker.last_plate,
+                            })
+                        except Exception:
+                            pass  # WebSocket mungkin sudah disconnect
+                    else:
+                        print("[OCR] OCR tidak berhasil membaca plat")
                 except Exception as e:
                     print(f"[OCR] Error: {e}")
                 ocr_future = None

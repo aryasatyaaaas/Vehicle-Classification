@@ -24,6 +24,7 @@ interface Props {
   apiUrl?: string;  // tidak dipakai lagi — WebSocket memakai window.location.host
   onDetections: (payload: WsPayload) => void;
   onManualCapture?: (blob: Blob) => void;
+  onStableCapture?: (dataUrl: string) => void;  // dipanggil sekali saat kendaraan stabil
   active: boolean;
 }
 
@@ -37,7 +38,7 @@ const COLORS: Record<number, string> = {
 
 type FacingMode = "environment" | "user";
 
-export default function CameraView({ onDetections, onManualCapture, active }: Props) {
+export default function CameraView({ onDetections, onManualCapture, onStableCapture, active }: Props) {
   const videoRef  = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef     = useRef<WebSocket | null>(null);
@@ -50,8 +51,9 @@ export default function CameraView({ onDetections, onManualCapture, active }: Pr
   const [activeFacing,  setActiveFacing]  = useState<string | null>(null);
   const [flashActive,   setFlashActive]   = useState(false);   // capture flash
 
-  const fpsCountRef = useRef(0);
-  const lastFpsTime = useRef(Date.now());
+  const fpsCountRef   = useRef(0);
+  const lastFpsTime   = useRef(Date.now());
+  const wasStableRef  = useRef(false);  // sudah ambil snapshot stabil di sesi ini?
 
   // ── Detect multiple cameras ────────────────────────────────────────────────
   useEffect(() => {
@@ -113,7 +115,7 @@ export default function CameraView({ onDetections, onManualCapture, active }: Pr
 
     ws.onmessage = (e) => {
       try {
-        const data = JSON.parse(e.data) as WsPayload;
+        const data = JSON.parse(e.data) as WsPayload & { plate_update?: string };
         const dets: Detection[] = (data.detections ?? []).map((d) => ({
           ...d,
           color: COLORS[d.class_id] ?? "#888",
@@ -124,6 +126,40 @@ export default function CameraView({ onDetections, onManualCapture, active }: Pr
           stable:          data.stable ?? false,
           stability_max:   data.stability_max ?? 5,
         };
+
+        // ── Snapshot saat kendaraan stabil (hanya sekali per sesi) ────────
+        if (data.stable && !wasStableRef.current && onStableCapture) {
+          wasStableRef.current = true;
+          const video  = videoRef.current;
+          const canvas = canvasRef.current;
+          if (video && canvas && video.videoWidth > 0) {
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              canvas.width  = video.videoWidth;
+              canvas.height = video.videoHeight;
+              ctx.drawImage(video, 0, 0);
+              const snapUrl = canvas.toDataURL("image/jpeg", 0.92);
+              onStableCapture(snapUrl);
+            }
+          }
+        }
+
+        // Reset flag saat tidak ada deteksi (kendaraan pergi)
+        if (dets.length === 0) wasStableRef.current = false;
+
+        // Simpan plate_number terbaru ke window global agar GolonganModal bisa polling
+        // Prioritaskan plate_update (notif langsung dari backend saat OCR selesai)
+        const freshPlate =
+          data.plate_update ||
+          dets.find((d) => d.plate_number)?.plate_number ||
+          null;
+        if (freshPlate) {
+          (window as unknown as Record<string, string | null>)["__latestPlate"] = freshPlate;
+        }
+
+        // Jika ini hanya plate_update message (detections kosong), jangan update UI deteksi
+        if (data.plate_update && dets.length === 0) return;
+
         onDetections(payload);
         drawBoxes(dets, payload.stability_count, payload.stability_max);
 
@@ -339,17 +375,7 @@ export default function CameraView({ onDetections, onManualCapture, active }: Pr
         </div>
       )}
 
-      {/* Kamera aktif label */}
-      {active && !camError && (
-        <div
-          className="absolute bottom-3 left-3 px-2 py-1 rounded text-xs"
-          style={{ background: "rgba(0,0,0,0.5)", color: "#e2e8f0", zIndex: 20 }}
-        >
-          {activeFacing === "environment" ? "📷 Kamera Belakang"
-            : activeFacing === "user" ? "🤳 Kamera Depan"
-            : "📷 Kamera"}
-        </div>
-      )}
+
 
       {/* Error state */}
       {camError && (

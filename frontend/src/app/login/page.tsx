@@ -482,7 +482,7 @@ export default function LoginPage() {
             {/* Divider */}
             <div className="divider">
               <div className="divider-line" />
-              <span className="divider-text">Sistem Klasifikasi Kendaraan Jasa Marga</span>
+              <span className="divider-text">Sistem Klasifikasi Kendaraan</span>
               <div className="divider-line" />
             </div>
           </div>

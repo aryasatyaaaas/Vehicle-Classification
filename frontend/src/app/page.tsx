@@ -125,6 +125,7 @@ export default function HomePage() {
   const [stabilityMax,   setStabilityMax]   = useState(5);
   const [isCapturing,    setIsCapturing]    = useState(false);
   const [selectedGerbang, setSelectedGerbang] = useState(DEFAULT_GERBANG);
+  const [captureDataUrl,  setCaptureDataUrl]  = useState<string | null>(null);  // foto snapshot untuk modal
 
   const stateRef      = useRef<AppState>("idle");
   const detTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -210,6 +211,14 @@ export default function HomePage() {
     if (isCapturing) return;
     setIsCapturing(true);
 
+    // Simpan foto sebagai data URL untuk ditampilkan di modal
+    const dataUrl = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+    setCaptureDataUrl(dataUrl);
+
     try {
       const form = new FormData();
       form.append("file", blob, "capture.jpg");
@@ -259,6 +268,9 @@ export default function HomePage() {
         setGolonganId(null);
         setDetections([]);
         setStabilityCount(0);
+        setCaptureDataUrl(null);
+        // Reset plate global untuk kendaraan berikutnya
+        (window as unknown as Record<string, string | null>)["__latestPlate"] = null;
       }, 2500);
     }, 2500);
   }, []);
@@ -270,6 +282,9 @@ export default function HomePage() {
     setGolonganId(null);
     setDetections([]);
     setStabilityCount(0);
+    setCaptureDataUrl(null);
+    // Reset plate global agar sesi kendaraan berikutnya mulai bersih
+    (window as unknown as Record<string, string | null>)["__latestPlate"] = null;
     if (detTimerRef.current) { clearTimeout(detTimerRef.current); detTimerRef.current = null; }
   }, []);
 
@@ -439,6 +454,7 @@ export default function HomePage() {
             <CameraView
               onDetections={handleDetections}
               onManualCapture={handleManualCapture}
+              onStableCapture={setCaptureDataUrl}
               active={true}
             />
 
@@ -573,6 +589,7 @@ export default function HomePage() {
             detection={topDet}
             gerbangAsal={selectedGerbang}
             gerbangTujuan={findExit(selectedGerbang)}
+            captureImage={captureDataUrl}
             onSubmit={handleSubmit}
             onClose={handleCloseModal}
           />

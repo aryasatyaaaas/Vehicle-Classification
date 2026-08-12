@@ -97,15 +97,64 @@ interface Props {
   detection: Detection;
   gerbangAsal: string;
   gerbangTujuan: string;
+  captureImage?: string | null;   // base64 data URL foto saat deteksi
   onSubmit: (golonganId: number) => void;
   onClose: () => void;
 }
 
-export default function GolonganModal({ detection, gerbangAsal, gerbangTujuan, onSubmit, onClose }: Props) {
+export default function GolonganModal({ detection, gerbangAsal, gerbangTujuan, captureImage, onSubmit, onClose }: Props) {
   const aiGolId    = detection.class_id;
   const aiConf     = detection.confidence;
   const autoSelect = aiConf >= CONF_THRESHOLD;
-  const plateReady = !!detection.plate_number;
+
+  // Plate number: mulai dari detection prop, update via polling jika masih null
+  const [plate, setPlate] = React.useState<string | null>(detection.plate_number ?? null);
+  const plateReady = !!plate;
+
+  // Polling: jika plate belum terbaca, coba ambil dari backend setiap 2 detik
+  const pollingRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const attemptRef = React.useRef(0);
+  const MAX_ATTEMPTS = 8; // max 16 detik polling
+
+  React.useEffect(() => {
+    // Jika plate sudah ada dari awal, tidak perlu polling
+    if (plate) return;
+
+    // Polling via /api/capture dengan gambar terakhir tidak praktis
+    // Sebagai gantinya, pantau window.__lastPlate yang di-set oleh CameraView WS
+    const checkPlate = () => {
+      // Cek apakah plate sudah tersedia dari WebSocket (disimpan di window global)
+      const wsPlate = (window as unknown as Record<string, string | null>)["__latestPlate"];
+      if (wsPlate && wsPlate !== plate) {
+        setPlate(wsPlate);
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        return;
+      }
+
+      attemptRef.current++;
+      if (attemptRef.current >= MAX_ATTEMPTS) {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      }
+    };
+
+    pollingRef.current = setInterval(checkPlate, 1500);
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update saat detection.plate_number berubah dari luar (WebSocket update)
+  React.useEffect(() => {
+    if (detection.plate_number && !plate) {
+      setPlate(detection.plate_number);
+    }
+  }, [detection.plate_number, plate]);
 
   const [selected, setSelected] = React.useState<number | null>(
     autoSelect ? aiGolId : null
@@ -117,6 +166,28 @@ export default function GolonganModal({ detection, gerbangAsal, gerbangTujuan, o
       setSelected(aiGolId);
     }
   }, [aiGolId, autoSelect, selected]);
+
+  // ── Keyboard shortcut: 1–5 → pilih + submit, Escape → tutup ─────────────
+  React.useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      // Abaikan saat user sedang mengetik di input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      // Escape → tutup modal
+      if (e.key === "Escape") { onClose(); return; }
+
+      // Angka 1–5 dari keyboard biasa maupun numpad
+      const num = e.key.match(/^([1-5])$/) || e.code.match(/^Numpad([1-5])$/);
+      if (num) {
+        const golId = parseInt(num[1], 10) - 1; // "1"→0, "2"→1, dst.
+        e.preventDefault();
+        setSelected(golId);
+        setTimeout(() => onSubmit(golId), 0); // submit di tick berikutnya
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onClose, onSubmit]);
 
   return (
     <>
@@ -212,6 +283,31 @@ export default function GolonganModal({ detection, gerbangAsal, gerbangTujuan, o
         .gol-desc { font-family: Inter, sans-serif; font-weight: 400; font-size: 14px; color: #000; }
         .gol-conf-green { font-family: Inter, sans-serif; font-weight: 700; font-size: 18px; color: #00AC1A; }
         .gol-conf-warn  { font-family: Inter, sans-serif; font-weight: 700; font-size: 14px; color: #f59e0b; }
+
+        /* ── Keyboard shortcut badge di tiap kartu ── */
+        .kbd-badge {
+          position: absolute;
+          top: 8px;
+          right: 10px;
+          background: #0D63A5;
+          color: #fff;
+          font-family: Inter, sans-serif;
+          font-size: 13px;
+          font-weight: 800;
+          width: 26px;
+          height: 26px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 6px rgba(13,99,165,0.35);
+          letter-spacing: 0;
+          pointer-events: none;
+          transition: background 0.15s;
+        }
+        .gol-card.selected .kbd-badge {
+          background: #083358;
+        }
         .manual-notice {
           background: #fff8e1;
           border: 2px solid #FFD717;
@@ -251,68 +347,223 @@ export default function GolonganModal({ detection, gerbangAsal, gerbangTujuan, o
           transition: color 0.2s;
         }
         .close-btn:hover { color: #ef4444; }
+
+        /* ── Header dua kolom: foto kiri | info kanan ── */
+        .modal-header-2col {
+          width: 100%;
+          display: flex;
+          flex-direction: row;
+          align-items: stretch;
+          gap: 0;
+          flex-shrink: 0;
+          border-bottom: 1.5px solid #e2e8f0;
+        }
+
+        /* Kolom kiri — foto */
+        .header-photo-col {
+          flex: 0 0 42%;
+          max-width: 42%;
+          position: relative;
+          background: #0f172a;
+          border-radius: 12px 0 0 0;
+          overflow: hidden;
+          min-height: 200px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .header-photo-col img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .header-photo-no-img {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          color: #475569;
+          font-family: Inter, sans-serif;
+          font-size: 14px;
+          font-weight: 500;
+          width: 100%;
+          height: 100%;
+          min-height: 200px;
+          background: #f1f5f9;
+        }
+        .photo-live-badge {
+          position: absolute;
+          top: 10px;
+          left: 12px;
+          background: rgba(0,0,0,0.6);
+          color: #f87171;
+          font-family: Inter, sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          letter-spacing: 0.04em;
+        }
+        .photo-live-dot {
+          width: 7px; height: 7px;
+          border-radius: 50%;
+          background: #f87171;
+          animation: blink 1.2s ease-in-out infinite;
+          flex-shrink: 0;
+        }
+
+        /* Kolom kanan — info */
+        .header-info-col {
+          flex: 1 1 0;
+          padding: 24px 40px 20px 28px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .info-section-label {
+          font-family: Inter, sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          margin-bottom: 4px;
+        }
+        .info-plate-value {
+          font-family: Inter, sans-serif;
+          font-weight: 800;
+          font-size: 30px;
+          color: #0D63A5;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .info-ai-value {
+          font-family: Inter, sans-serif;
+          font-weight: 700;
+          font-size: 18px;
+        }
+        .info-gate-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #f1f5f9;
+          border-radius: 8px;
+          padding: 12px 16px;
+        }
+        .info-gate-col {
+          flex: 1;
+        }
+        .info-gate-label {
+          font-family: Inter, sans-serif;
+          font-size: 11px;
+          color: #94a3b8;
+          font-weight: 500;
+          margin-bottom: 3px;
+        }
+        .info-gate-value {
+          font-family: Inter, sans-serif;
+          font-weight: 700;
+          font-size: 15px;
+          color: #1e293b;
+          word-break: break-word;
+        }
+        .info-gate-arrow {
+          color: #0D63A5;
+          font-size: 22px;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
       `}</style>
 
       <div className="gol-modal-backdrop" onClick={onClose}>
         <div className="gol-modal-card" onClick={(e) => e.stopPropagation()}>
           <button className="close-btn" onClick={onClose} aria-label="Close modal">&times;</button>
 
-          {/* ─ Header: Plate + AI result ─ */}
-          <div className="modal-header">
-            <div style={{
-              width: "100%", background: "#f8fafc", borderRadius: 10,
-              padding: "14px 20px", display: "flex", alignItems: "center",
-              justifyContent: "space-between", gap: 12,
-              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-            }}>
-              {/* Plate number — live update */}
-              <div>
-                <div style={{ fontFamily: "Inter", fontSize: 12, color: "#64748b", fontWeight: 500, marginBottom: 4 }}>
-                  No. Polisi
+          {/* ── HEADER DUA KOLOM: Foto (kiri) | Info Tol (kanan) ── */}
+          <div className="modal-header-2col">
+
+            {/* Kolom Kiri — Foto Kendaraan */}
+            <div className="header-photo-col">
+              {captureImage ? (
+                <>
+                  <img src={captureImage} alt="Foto kendaraan saat deteksi" />
+                  <div className="photo-live-badge">
+                    <span className="photo-live-dot" />
+                    FOTO DETEKSI
+                  </div>
+                </>
+              ) : (
+                <div className="header-photo-no-img">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  <span>Foto tidak tersedia</span>
                 </div>
-                <div style={{ fontFamily: "Inter", fontWeight: 800, fontSize: 28, color: "#0D63A5", display: "flex", alignItems: "center", gap: 10 }}>
-                  {detection.plate_number ?? (
-                    <span style={{ fontWeight: 500, fontSize: 18, color: "#94a3b8", display: "flex", alignItems: "center", gap: 8 }}>
+              )}
+            </div>
+
+            {/* Kolom Kanan — Info Tol */}
+            <div className="header-info-col">
+
+              {/* No. Polisi */}
+              <div>
+                <div className="info-section-label">No. Polisi</div>
+                <div className="info-plate-value">
+                  {plate ?? (
+                    <span style={{ fontWeight: 500, fontSize: 20, color: "#94a3b8", display: "flex", alignItems: "center", gap: 8 }}>
                       Membaca plat...
                       <span style={{ display: "inline-block", width: 8, height: 8, background: "#0D63A5", borderRadius: "50%", animation: "blink 1s ease-in-out infinite" }} />
                     </span>
                   )}
-                  {detection.plate_number && (
+                  {plate && (
                     <span style={{ fontSize: 13, fontWeight: 600, color: "#16a34a", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4, padding: "2px 8px" }}>
                       ✓ Terbaca
                     </span>
                   )}
                 </div>
               </div>
-              {/* AI result */}
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontFamily: "Inter", fontSize: 12, color: "#64748b", fontWeight: 500, marginBottom: 4 }}>Golongan Deteksi AI</div>
-                <div style={{ fontFamily: "Inter", fontWeight: 700, fontSize: 16, color: aiConf >= CONF_THRESHOLD ? "#16a34a" : "#f59e0b" }}>
-                  {GOLONGAN_LIST[aiGolId]?.name ?? "Tidak dikenal"} — {Math.round(aiConf * 100)}%
-                </div>
-              </div>
-            </div>
 
-            {/* Gerbang Asal → Tujuan */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 12,
-              background: "#f1f5f9", borderRadius: 8, padding: "10px 16px", marginTop: 8,
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "Inter", fontSize: 11, color: "#94a3b8", fontWeight: 500, marginBottom: 2 }}>Gerbang Asal</div>
-                <div style={{ fontFamily: "Inter", fontWeight: 700, fontSize: 14, color: "#1e293b" }}>{gerbangAsal}</div>
-              </div>
-              <div style={{ color: "#0D63A5", fontSize: 20, fontWeight: 700 }}>→</div>
-              <div style={{ flex: 1, textAlign: "right" }}>
-                <div style={{ fontFamily: "Inter", fontSize: 11, color: "#94a3b8", fontWeight: 500, marginBottom: 2 }}>Gerbang Tujuan</div>
-                <div style={{ fontFamily: "Inter", fontWeight: 700, fontSize: 14, color: "#1e293b", wordBreak: "break-word" }}>
-                  {gerbangTujuan === "-" ? (
-                    <span style={{ color: "#94a3b8", fontWeight: 400 }}>Tidak diketahui</span>
-                  ) : gerbangTujuan}
+              {/* Golongan AI */}
+              <div>
+                <div className="info-section-label">Golongan Deteksi AI</div>
+                <div className="info-ai-value" style={{ color: aiConf >= CONF_THRESHOLD ? "#16a34a" : "#f59e0b" }}>
+                  {GOLONGAN_LIST[aiGolId]?.name ?? "Tidak dikenal"}
+                  <span style={{ fontWeight: 500, fontSize: 15, marginLeft: 8, color: aiConf >= CONF_THRESHOLD ? "#16a34a" : "#f59e0b" }}>
+                    — {Math.round(aiConf * 100)}%
+                    {aiConf < CONF_THRESHOLD && " ⚠ Pilih manual"}
+                  </span>
                 </div>
               </div>
-            </div>
-          </div>{/* end modal-header */}
+
+              {/* Gerbang Asal → Tujuan */}
+              <div className="info-gate-row">
+                <div className="info-gate-col">
+                  <div className="info-gate-label">Gerbang Asal</div>
+                  <div className="info-gate-value">{gerbangAsal}</div>
+                </div>
+                <div className="info-gate-arrow">→</div>
+                <div className="info-gate-col" style={{ textAlign: "right" }}>
+                  <div className="info-gate-label">Gerbang Tujuan</div>
+                  <div className="info-gate-value">
+                    {gerbangTujuan === "-" ? (
+                      <span style={{ color: "#94a3b8", fontWeight: 400 }}>Tidak diketahui</span>
+                    ) : gerbangTujuan}
+                  </div>
+                </div>
+              </div>
+
+            </div>{/* end header-info-col */}
+          </div>{/* end modal-header-2col */}
 
 
           {/* ─ Body: notice + grid ─ */}
@@ -334,10 +585,14 @@ export default function GolonganModal({ detection, gerbangAsal, gerbangTujuan, o
                   key={gol.id}
                   id={`golongan-card-${gol.id}`}
                   className={`gol-card ${isSelected ? "selected" : ""} ${isAI && autoSelect ? "ai-predicted" : ""}`}
-                  onClick={() => setSelected(gol.id)}
+                  style={{ position: "relative" }}
+                  onClick={() => { setSelected(gol.id); onSubmit(gol.id); }}
                   role="button"
                   aria-pressed={isSelected}
                 >
+                  {/* Shortcut key badge */}
+                  <span className="kbd-badge">{gol.id + 1}</span>
+
                   <div className="gol-icon-wrap">{gol.icon}</div>
                   <div className="gol-info">
                     <div className="gol-name">{gol.name}</div>
