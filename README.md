@@ -12,7 +12,7 @@
 
 ---
 
-## 📖 Deskripsi
+## Deskripsi
 
 **Vehicle Classification Tol** adalah sistem berbasis AI untuk mengklasifikasikan golongan kendaraan di gerbang tol secara real-time. Sistem ini memadukan deteksi objek YOLOv8 dengan pembacaan plat nomor (EasyOCR) dan menyajikan hasilnya melalui antarmuka web modern.
 
@@ -22,21 +22,21 @@
 
 ---
 
-## ✨ Fitur
+## Fitur
 
-- 🎯 **Deteksi Real-time** — Streaming frame via WebSocket dengan latensi rendah
-- 🧠 **Smart Capture** — Deteksi stabilitas bounding box antar frame; OCR hanya dijalankan saat kendaraan berhenti (hemat komputasi)
-- 🔤 **Plate OCR** — Pembacaan plat nomor dua tahap: crop region → EasyOCR
-- 📸 **Manual Capture** — Tombol capture untuk operator; pemilihan frame paling tajam otomatis
-- 🖼️ **Image Upload** — Analisis gambar statis via endpoint `/predict`
-- 📊 **5 Kelas Kendaraan** — GOL I sampai GOL V sesuai standar Jasa Marga
-- 🔒 **HTTPS Ready** — Nginx reverse proxy dengan HTTPS untuk akses kamera browser
-- 🐳 **Docker Compose** — Deploy satu perintah ke server/VM
-- 🖥️ **Desktop App** — Dukungan Tauri untuk membangun aplikasi desktop native
+- Deteksi Real-time** — Streaming frame via WebSocket dengan latensi rendah
+- Smart Capture** — Deteksi stabilitas bounding box antar frame; OCR hanya dijalankan saat kendaraan berhenti (hemat komputasi)
+- Plate OCR** — Pembacaan plat nomor dua tahap: crop region → EasyOCR
+- Manual Capture** — Tombol capture untuk operator; pemilihan frame paling tajam otomatis
+- Image Upload** — Analisis gambar statis via endpoint `/predict`
+- 5 Kelas Kendaraan** — GOL I sampai GOL V sesuai standar Jasa Marga
+- HTTPS Ready** — Nginx reverse proxy dengan HTTPS untuk akses kamera browser
+- Docker Compose** — Deploy satu perintah ke server/VM
+- Desktop App** — Dukungan Tauri untuk membangun aplikasi desktop native
 
 ---
 
-## 🏷️ Kelas Kendaraan
+## Kelas Kendaraan
 
 | ID | Golongan | Deskripsi | Warna |
 |----|----------|-----------|-------|
@@ -48,7 +48,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Teknologi |
 |-------|-----------|
@@ -64,7 +64,7 @@
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Pastikan software berikut sudah terinstall sebelum memulai:
 
@@ -79,7 +79,7 @@ Pastikan software berikut sudah terinstall sebelum memulai:
 
 ---
 
-## ⚡ Installation & Quick Start
+## Installation & Quick Start
 
 ### 1. Clone Repository
 
@@ -112,7 +112,7 @@ Edit file `.env` sesuai konfigurasi server Anda (lihat bagian [Konfigurasi](#kon
 
 ---
 
-## 🚀 Usage / Cara Pakai
+## Usage / Cara Pakai
 
 ### Mode Development (Lokal)
 
@@ -197,7 +197,7 @@ docker compose down
 
 ---
 
-## ⚙️ Konfigurasi
+## Konfigurasi
 
 Salin `.env.example` ke `.env` lalu sesuaikan nilai berikut:
 
@@ -268,7 +268,7 @@ Base URL: `http://localhost:8000`
 
 ---
 
-## 📁 Struktur Folder
+## Struktur Folder
 
 ```
 Vehicle_Classification/
@@ -322,7 +322,7 @@ Vehicle_Classification/
 
 ---
 
-## 📊 Dataset
+## Dataset
 
 | Atribut | Detail |
 |---------|--------|
@@ -343,7 +343,7 @@ Vehicle_Classification/
 
 ---
 
-## 🧪 Testing & Evaluasi
+## Testing & Evaluasi
 
 ### Jalankan Evaluasi Model
 
@@ -395,7 +395,7 @@ npm run tauri:build
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] Klasifikasi 5 golongan kendaraan real-time via WebSocket
 - [x] Pembacaan plat nomor dengan EasyOCR (dua tahap)
@@ -409,7 +409,7 @@ npm run tauri:build
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Kontribusi sangat diterima! Ikuti langkah berikut:
 
@@ -428,7 +428,7 @@ Kontribusi sangat diterima! Ikuti langkah berikut:
 
 ---
 
-## 📄 Lisensi
+## Lisensi
 
 Proyek ini dilisensikan di bawah lisensi **MIT**. Lihat file [LICENSE](LICENSE) untuk detail lengkap.
 
@@ -437,7 +437,7 @@ Dataset yang digunakan berlisensi **Public Domain** dari Roboflow Universe.
 ---
 
 
-## 🙏 Acknowledgements
+##  Acknowledgements
 
 - [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) — Object detection framework
 - [EasyOCR](https://github.com/JaidedAI/EasyOCR) — OCR library untuk pembacaan plat nomor
